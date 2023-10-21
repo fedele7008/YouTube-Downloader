@@ -2,3 +2,4 @@
 **/dist*
 **/*venv*
 **/*.spec
+**/.DS_Store
