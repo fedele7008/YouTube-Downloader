@@ -11,6 +11,7 @@ import yt_dlp
 import shutil
 import requests
 from io import BytesIO
+import threading
 
 def get_video_formats(url, ffmpeg_path):
     ydl_opts = {
@@ -53,7 +54,9 @@ class DownloadWorker(QRunnable):
         self.output_path = output_path
         self.video_title = video_title
         self.signals = DownloadWorkerSignals()
-        self.is_cancelled = False
+        self.is_cancelled = threading.Event()
+        self.ydl = None
+        self.full_path = None
 
     @staticmethod
     def generate_unique_filename(base_name, ext, output_path):
@@ -75,22 +78,56 @@ class DownloadWorker(QRunnable):
         base_name = f"{safe_title}_{resolution}"
         file_name = self.generate_unique_filename(base_name, ext, self.output_path)
         full_path = os.path.join(self.output_path, file_name)
+        self.full_path = full_path
+
+        # 기존 파일 삭제
+        if os.path.exists(self.full_path):
+            try:
+                os.remove(self.full_path)
+                print(f"Deleted existing file: {self.full_path}")
+            except Exception as e:
+                print(f"Error deleting existing file: {e}")
+
         ydl_opts = {
             'format': self.format.get('format_id', 'bestvideo')+'+bestaudio/best',
             'outtmpl': full_path,
             'progress_hooks': [self.progress_hook],
-            'merge_output_format': ext
+            'merge_output_format': ext,
+            'retries': 10,  # 재시도 횟수 증가
+            'fragment_retries': 10,  # 프래그먼트 다운로드 재시도 횟수
+            'skip_unavailable_fragments': True,  # 사용 불가능한 프래그먼트 건너뛰기
+            'keepvideo': False,  # 병합 후 원본 파일 삭제
+            'overwrites': True,  # 기존 파일 덮어쓰기
         }
 
         try:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                ydl.download([self.url])
-            if not self.is_cancelled:
+                self.ydl = ydl
+                if not self.is_cancelled.is_set():
+                    ydl.download([self.url])
+            if not self.is_cancelled.is_set():
                 self.signals.finished.emit(self.row)
         except Exception as e:
-            self.signals.error.emit(self.row, str(e))
+            if not self.is_cancelled.is_set():
+                self.signals.error.emit(self.row, str(e))
+        finally:
+            # 다운로드 완료 또는 취소 후 부분 다운로드 파일 삭제
+            partial_path = self.full_path + '.part'
+            if os.path.exists(partial_path):
+                try:
+                    os.remove(partial_path)
+                    print(f"Deleted partial file: {partial_path}")
+                except Exception as e:
+                    print(f"Error deleting partial file: {e}")
+
+    def cancel(self):
+        self.is_cancelled.set()
+        if self.ydl:
+            self.ydl.params['outtmpl'] = os.devnull  # 출력을 무시합니다
 
     def progress_hook(self, d):
+        if self.is_cancelled.is_set():
+            raise Exception("Download cancelled")
         if d['status'] == 'downloading':
             try:
                 total_bytes = d.get('total_bytes') or d.get('total_bytes_estimate', 0)
@@ -110,7 +147,6 @@ class DownloadWorker(QRunnable):
                 self.signals.progress.emit(self.row, progress, self.format_time(eta))
             except Exception as e:
                 print(f"Error in progress_hook: {e}")
-                print(f"Progress data: {d}")
                 self.signals.progress.emit(self.row, 0, "N/A")
 
     @staticmethod
@@ -118,9 +154,6 @@ class DownloadWorker(QRunnable):
         m, s = divmod(seconds, 60)
         h, m = divmod(m, 60)
         return f"{h:02.0f}:{m:02.0f}:{s:02.0f}"
-
-    def cancel(self):
-        self.is_cancelled = True
 
 class YouTubeDownloader(QMainWindow):
     def __init__(self):
@@ -212,7 +245,7 @@ class YouTubeDownloader(QMainWindow):
         self.title_label.setContentsMargins(0, 0, 0, 0)
         video_text_layout.addWidget(self.title_label)
         
-        # 채널 이름 레이블
+        # 채널 이 레이블
         self.channel_label = QLabel()
         self.channel_label.setContentsMargins(0, 0, 0, 0)
         self.channel_label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
@@ -611,7 +644,7 @@ class YouTubeDownloader(QMainWindow):
             else:
                 filesize_str = 'Unknown'
             self.video_table.setItem(row_position, 2, QTableWidgetItem(filesize_str))
-            # 다운로드 버튼
+            # 다운로��� 버튼
             download_btn = QPushButton("다운로드")
             format_id = best_format['format_id']
             download_btn.clicked.connect(lambda _, f=best_format: self.download_video(f))
@@ -847,6 +880,24 @@ class YouTubeDownloader(QMainWindow):
         if row in self.download_workers:
             worker = self.download_workers[row]
             worker.cancel()
+            
+            # 다운로드 중이던 파일 삭제
+            if hasattr(worker, 'full_path') and os.path.exists(worker.full_path):
+                try:
+                    os.remove(worker.full_path)
+                    print(f"Deleted file: {worker.full_path}")
+                except Exception as e:
+                    print(f"Error deleting file: {e}")
+
+            # 부분 다운로드 파일 삭제
+            partial_path = worker.full_path + '.part'
+            if os.path.exists(partial_path):
+                try:
+                    os.remove(partial_path)
+                    print(f"Deleted partial file: {partial_path}")
+                except Exception as e:
+                    print(f"Error deleting partial file: {e}")
+
             status_widget = self.download_list.cellWidget(row, 6)
             if status_widget:
                 status_label = status_widget.findChild(QLabel)
@@ -862,6 +913,18 @@ class YouTubeDownloader(QMainWindow):
                     self.downloading_items.remove(item)
                     self.update_download_button(item[1])
                     break
+
+            # 프로그레스 바를 0으로 리셋
+            progress_widget = self.download_list.cellWidget(row, 4)
+            if progress_widget:
+                progress_bar = progress_widget.findChild(QProgressBar)
+                if progress_bar:
+                    progress_bar.setValue(0)
+            
+            # 남은 시간을 초기화
+            time_item = self.download_list.item(row, 5)
+            if time_item:
+                time_item.setText("")
 
     def setup_download_list(self):
         self.download_list = QTableWidget()
