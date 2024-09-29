@@ -13,6 +13,7 @@ import requests
 from io import BytesIO
 import threading
 import re
+import subprocess
 
 def get_video_formats(url, ffmpeg_path):
     ydl_opts = {
@@ -357,7 +358,7 @@ class YouTubeDownloader(QMainWindow):
         # 로딩 위젯 생성
         self.loading_widget = QLabel()
         self.loading_widget.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        gif_path = os.path.join(os.path.dirname(__file__), 'assets', 'loading.gif')
+        gif_path = os.path.join(os.path.dirname(__file__), 'src/assets', 'loading.gif')
         self.loading_movie = QMovie(gif_path)
         if self.loading_movie.isValid():
             self.loading_movie.setScaledSize(QSize(50, 50))
@@ -781,6 +782,9 @@ class YouTubeDownloader(QMainWindow):
                 break
 
     def download_video(self, format):
+        if not self.validate_ffmpeg():
+            return
+        
         if not hasattr(self, 'video_title') or not self.video_title:
             self.video_title = "Unknown Title"
         
@@ -1080,18 +1084,18 @@ class YouTubeDownloader(QMainWindow):
         """)
 
     def get_ffmpeg_path(self):
-        # 시스템에 설치된 ffmpeg 찾기
-        ffmpeg_path = shutil.which('ffmpeg')
-        if ffmpeg_path:
-            return ffmpeg_path
-        
-        # 시스템에서 찾지 못한 경우, 기존 로직 사용
-        if getattr(sys, 'frozen', False):
-            # PyInstaller로 패키징 경우
-            return os.path.join(sys._MEIPASS, 'ffmpeg')
+        # Determine the base path where the ffmpeg binary is located
+        if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+            # If the application is bundled by PyInstaller
+            base_path = os.path.join(sys._MEIPASS, 'ffmpeg')
+            # base_path = sys._MEIPASS
         else:
-            # 개발 환경에서 실행되는 경우
-            return os.path.join(os.path.dirname(__file__), 'ffmpeg')
+            # If running in a normal Python environment
+            base_path = os.path.dirname(os.path.abspath(__file__))
+
+        # Construct the full path to the ffmpeg executable
+        ffmpeg_executable = os.path.join(base_path, 'ffmpeg')
+        return ffmpeg_executable
 
     def show_error_message(self, title, message):
         error_box = QMessageBox(self)
@@ -1143,6 +1147,26 @@ class YouTubeDownloader(QMainWindow):
     def check_if_merged_format(self, format):
         return 'acodec' in format and format['acodec'] != 'none' and \
                'vcodec' in format and format['vcodec'] != 'none'
+
+    def validate_ffmpeg(self):
+        ffmpeg_path = self.get_ffmpeg_path()
+        if not ffmpeg_path or not os.path.isfile(ffmpeg_path):
+            QMessageBox.critical(self, "Error", f"FFmpeg not found. Please check your installation: {ffmpeg_path}")
+            return False
+        
+        try:
+            result = subprocess.run([ffmpeg_path, "-version"], capture_output=True, text=True, timeout=5)
+            if result.returncode != 0:
+                QMessageBox.critical(self, "Error", "FFmpeg is not working properly. Please check your installation.")
+                return False
+        except subprocess.TimeoutExpired:
+            QMessageBox.critical(self, "Error", "FFmpeg check timed out. Please try again.")
+            return False
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"An error occurred while checking FFmpeg: {str(e)}")
+            return False
+        
+        return True
 
 class ClickableLabel(QLabel):
     clicked = pyqtSignal()
