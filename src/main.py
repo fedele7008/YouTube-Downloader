@@ -202,7 +202,6 @@ class YouTubeDownloader(QMainWindow):
         self.audio_tab = QWidget()
         self.tab_widget.addTab(self.video_tab, "동영상")
         self.tab_widget.addTab(self.audio_tab, "오디오")
-        self.main_layout.addWidget(self.tab_widget)
 
         # 비디오 탭 내용
         video_layout = QVBoxLayout(self.video_tab)
@@ -297,10 +296,6 @@ class YouTubeDownloader(QMainWindow):
 
         self.video_content_layout.addWidget(self.video_table)
 
-        # 다운로드 테이블 설정
-        self.setup_download_list()
-        self.video_content_layout.addWidget(self.download_list)
-
         # 스택 위젯에 컨텐츠 추가
         self.video_stack.addWidget(self.video_content_widget)
 
@@ -316,8 +311,6 @@ class YouTubeDownloader(QMainWindow):
             print(f"Error: Could not load the GIF file at {gif_path}")
         self.video_stack.addWidget(self.loading_widget)
 
-        self.apply_widget_styles()
-
         # 스레드풀 초기화
         self.threadpool = QThreadPool()
 
@@ -328,6 +321,15 @@ class YouTubeDownloader(QMainWindow):
 
         self.video_title = ""
         self.downloading_items = set()  # (video_title, format_id) 튜플을 저장
+
+        # 새로운 레이아웃 생성
+        content_layout = QVBoxLayout()
+        content_layout.addWidget(self.tab_widget)
+        self.setup_download_list()
+        content_layout.addWidget(self.download_list)
+        self.main_layout.addLayout(content_layout)
+
+        self.apply_widget_styles()
 
     def apply_global_style(self):
         self.setStyleSheet("""
@@ -552,7 +554,7 @@ class YouTubeDownloader(QMainWindow):
         self.video_url = info.get('webpage_url', '')  # 클래스 속성으로 저장
 
         self.video_title = title  # 클래스 속성으로 저장
-        self.title_label.setText(f"제목: {title}")
+        self.title_label.setText(f"제��: {title}")
 
         if thumbnail_url:
             response = requests.get(thumbnail_url)
@@ -644,7 +646,7 @@ class YouTubeDownloader(QMainWindow):
             else:
                 filesize_str = 'Unknown'
             self.video_table.setItem(row_position, 2, QTableWidgetItem(filesize_str))
-            # 다운로��� 버튼
+            # 다운로드 버튼
             download_btn = QPushButton("다운로드")
             format_id = best_format['format_id']
             download_btn.clicked.connect(lambda _, f=best_format: self.download_video(f))
@@ -934,16 +936,14 @@ class YouTubeDownloader(QMainWindow):
         header = self.download_list.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.Fixed)
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
-        header.setSectionResizeMode(2, QHeaderView.ResizeMode.Fixed)
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(3, QHeaderView.ResizeMode.Fixed)
         header.setSectionResizeMode(4, QHeaderView.ResizeMode.Stretch)
-        header.setSectionResizeMode(5, QHeaderView.ResizeMode.Fixed)
+        header.setSectionResizeMode(5, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(6, QHeaderView.ResizeMode.Fixed)
         
         self.download_list.setColumnWidth(0, 90)  # 썸네일
-        self.download_list.setColumnWidth(2, 60)  # 해상도
         self.download_list.setColumnWidth(3, 100)  # 파일 크기
-        self.download_list.setColumnWidth(5, 80)  # 남은 시간
         self.download_list.setColumnWidth(6, 100)  # 상태 (너비를 늘림)
 
     def get_ffmpeg_path(self):
