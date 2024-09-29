@@ -1026,11 +1026,12 @@ class YouTubeDownloader(QMainWindow):
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(3, QHeaderView.ResizeMode.Fixed)
         header.setSectionResizeMode(4, QHeaderView.ResizeMode.Stretch)
-        header.setSectionResizeMode(5, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(5, QHeaderView.ResizeMode.Fixed)
         header.setSectionResizeMode(6, QHeaderView.ResizeMode.Fixed)
         
         self.download_list.setColumnWidth(0, 90)  # 썸네일
         self.download_list.setColumnWidth(3, 100)  # 파일 크기
+        self.download_list.setColumnWidth(5, 80)  # 파일 크기
         self.download_list.setColumnWidth(6, 100)  # 상태 (너비를 늘림)
 
     def get_ffmpeg_path(self):
