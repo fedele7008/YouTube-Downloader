@@ -888,6 +888,7 @@ class YouTubeDownloader(QMainWindow):
         self.download_list.setCellWidget(row, 6, status_widget)
 
         self.download_list.setRowHeight(row, 50)
+        self.download_list.scrollToBottom()
 
     def set_default_thumbnail(self, label):
         default_pixmap = QPixmap(70, 50)
