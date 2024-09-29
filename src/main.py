@@ -841,7 +841,7 @@ class YouTubeDownloader(QMainWindow):
         # 남은 시간
         self.download_list.setItem(row, 5, QTableWidgetItem(""))
 
-        # 상태 (취소 버튼)
+        # 상태 (취소 버��)
         status_widget = QWidget()
         status_layout = QVBoxLayout(status_widget)
         status_layout.setContentsMargins(2, 2, 2, 2)
@@ -1020,6 +1020,11 @@ class YouTubeDownloader(QMainWindow):
         self.download_list.setColumnCount(7)
         self.download_list.setHorizontalHeaderLabels(["썸네일", "비디오 이름", "해상도", "파일 크기", "진행률", "남은 시간", "상태"])
         
+        # Make the table non-selectable
+        self.download_list.setSelectionMode(QTableWidget.SelectionMode.NoSelection)
+        self.download_list.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.download_list.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+
         header = self.download_list.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.Fixed)
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
@@ -1031,8 +1036,27 @@ class YouTubeDownloader(QMainWindow):
         
         self.download_list.setColumnWidth(0, 90)  # 썸네일
         self.download_list.setColumnWidth(3, 100)  # 파일 크기
-        self.download_list.setColumnWidth(5, 80)  # 파일 크기
+        self.download_list.setColumnWidth(5, 80)  # 남은 시간
         self.download_list.setColumnWidth(6, 100)  # 상태 (너비를 늘림)
+
+        # Apply stylesheet to make it visually consistent with the video table
+        self.download_list.setStyleSheet("""
+            QTableWidget {
+                border: 1px solid #CCCCCC;
+                background-color: white;
+            }
+            QTableWidget::item {
+                padding: 5px;
+                border-right: 1px solid #CCCCCC;
+            }
+            QHeaderView::section {
+                background-color: #E0E0E0;
+                padding: 5px;
+                border: none;
+                border-right: 1px solid #CCCCCC;
+                border-bottom: 1px solid #CCCCCC;
+            }
+        """)
 
     def get_ffmpeg_path(self):
         # 시스템에 설치된 ffmpeg 찾기
