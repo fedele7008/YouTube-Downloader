@@ -54,12 +54,26 @@ class DownloadWorker(QRunnable):
         self.signals = DownloadWorkerSignals()
         self.is_cancelled = False
 
+    @staticmethod
+    def generate_unique_filename(base_name, ext, output_path):
+            file_name = f"{base_name}.{ext}"
+            counter = 1
+            while os.path.exists(os.path.join(output_path, file_name)):
+                file_name = f"{base_name}_{counter}.{ext}"
+                counter += 1
+            return file_name
+
     def run(self):
         safe_title = self.video_title.replace(' ', '_')
-        file_name = f"{safe_title}.%(ext)s"
-        full_path = os.path.join(self.output_path, file_name)
+        resolution = self.format.get('height', None)
         ext = self.format.get('ext', 'mp4')
-        print(ext)
+        if resolution is None:
+            resolution = "Unknown_resolution"
+        else:
+            resolution = f"{resolution}p"
+        base_name = f"{safe_title}_{resolution}"
+        file_name = self.generate_unique_filename(base_name, ext, self.output_path)
+        full_path = os.path.join(self.output_path, file_name)
         ydl_opts = {
             'format': self.format.get('format_id', 'bestvideo')+'+bestaudio/best',
             'outtmpl': full_path,
@@ -78,19 +92,24 @@ class DownloadWorker(QRunnable):
     def progress_hook(self, d):
         if d['status'] == 'downloading':
             try:
-                progress = d.get('_percent_str', '0%').replace('%', '')
-                progress = float(progress)
-                elapsed = d.get('elapsed', 0)
+                total_bytes = d.get('total_bytes') or d.get('total_bytes_estimate', 0)
+                downloaded_bytes = d.get('downloaded_bytes', 0)
+                
+                if total_bytes > 0:
+                    progress = (downloaded_bytes / total_bytes) * 100
+                else:
+                    progress = 0
+
                 speed = d.get('speed', 0)
-                if speed and elapsed:
-                    eta = (100 - progress) / (speed * 100) * elapsed
+                if speed:
+                    eta = (total_bytes - downloaded_bytes) / speed
                 else:
                     eta = 0
+
                 self.signals.progress.emit(self.row, progress, self.format_time(eta))
-            except ValueError as e:
+            except Exception as e:
                 print(f"Error in progress_hook: {e}")
                 print(f"Progress data: {d}")
-                # 오류 발생 시 진행률을 0으로 설정
                 self.signals.progress.emit(self.row, 0, "N/A")
 
     @staticmethod
@@ -689,12 +708,20 @@ class YouTubeDownloader(QMainWindow):
 
     def update_download_progress(self, row, progress, time_left):
         try:
-            progress_bar = self.download_list.cellWidget(row, 4).findChild(QProgressBar)
-            if progress_bar:
-                progress_bar.setValue(int(progress))
+            progress_widget = self.download_list.cellWidget(row, 4)
+            if progress_widget:
+                progress_bar = progress_widget.findChild(QProgressBar)
+                if progress_bar:
+                    progress_bar.setValue(int(progress))
+            
             time_item = self.download_list.item(row, 5)
             if time_item:
                 time_item.setText(time_left)
+            
+            # 상태 업데이트
+            status_item = self.download_list.item(row, 6)
+            if status_item:
+                status_item.setText(f"다운로드 중 ({progress:.1f}%)")
         except Exception as e:
             print(f"Error in update_download_progress: {e}")
 
