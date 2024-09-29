@@ -1,6 +1,10 @@
 # YouTube-Downloader
 Simple YouTube video downloader project
 
+# Preview
+<img width="1312" alt="Youtube-Downloader-preview" src="https://github.com/user-attachments/assets/8141b675-28da-4d96-ad1b-326b9598ce19">
+
+
 # How to build for MacOS
 1. Create a virtual environment
 1. Activate the virtual environment
