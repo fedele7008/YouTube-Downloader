@@ -193,15 +193,12 @@ class YouTubeDownloader(QMainWindow):
         self.search_button.clicked.connect(self.search_video)
         self.main_layout.addWidget(self.search_button)
 
-        # 패딩 추가
-        self.main_layout.addSpacing(10)
-
         # 탭 위젯
         self.tab_widget = QTabWidget()
         self.video_tab = QWidget()
-        self.audio_tab = QWidget()
+        # self.audio_tab = QWidget() # Feature for version 2.1
         self.tab_widget.addTab(self.video_tab, "동영상")
-        self.tab_widget.addTab(self.audio_tab, "오디오")
+        # self.tab_widget.addTab(self.audio_tab, "오디오") # Feature for version 2.1
 
         # 비디오 탭 내용
         video_layout = QVBoxLayout(self.video_tab)
