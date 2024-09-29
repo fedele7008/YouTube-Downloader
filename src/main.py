@@ -293,6 +293,7 @@ class YouTubeDownloader(QMainWindow):
         self.worker_count = 0
 
         self.video_title = ""
+        self.downloading_items = set()  # (video_title, format_id) 튜플을 저장
 
     def apply_global_style(self):
         self.setStyleSheet("""
@@ -608,14 +609,30 @@ class YouTubeDownloader(QMainWindow):
             self.video_table.setItem(row_position, 2, QTableWidgetItem(filesize_str))
             # 다운로드 버튼
             download_btn = QPushButton("다운로드")
-            download_btn.setStyleSheet("""
-                background-color: #4CAF50; 
-                color: white;
-                border-radius: 4px;
-                padding: 5px 10px;
-                margin: 2px;
-            """)
+            format_id = best_format['format_id']
             download_btn.clicked.connect(lambda _, f=best_format: self.download_video(f))
+            
+            # 이미 다운로드 중인 아이템이면 버튼 비활성화
+            if (self.video_title, format_id) in self.downloading_items:
+                download_btn.setEnabled(False)
+                download_btn.setText("다운로드 중")
+                download_btn.setStyleSheet("""
+                    background-color: #CCCCCC; 
+                    color: #666666;
+                    border-radius: 4px;
+                    padding: 5px 10px;
+                    margin: 2px;
+                """)
+            else:
+                download_btn.setStyleSheet("""
+                    background-color: #4CAF50; 
+                    color: white;
+                    border-radius: 4px;
+                    padding: 5px 10px;
+                    margin: 2px;
+                """)
+            
+            download_btn.setProperty('format_id', format_id)
             self.video_table.setCellWidget(row_position, 3, download_btn)
 
         # 각 행의 높이를 40픽셀로 설정
@@ -633,9 +650,43 @@ class YouTubeDownloader(QMainWindow):
         else:
             return f"{size_bytes/(1024*1024*1024):.2f} GB"
 
+    def update_download_button(self, format_id):
+        for row in range(self.video_table.rowCount()):
+            download_btn = self.video_table.cellWidget(row, 3)
+            if isinstance(download_btn, QPushButton) and download_btn.property('format_id') == format_id:
+                if (self.video_title, format_id) in self.downloading_items:
+                    download_btn.setEnabled(False)
+                    download_btn.setText("다운로드 중")
+                    download_btn.setStyleSheet("""
+                        background-color: #CCCCCC; 
+                        color: #666666;
+                        border-radius: 4px;
+                        padding: 5px 10px;
+                        margin: 2px;
+                    """)
+                else:
+                    download_btn.setEnabled(True)
+                    download_btn.setText("다운로드")
+                    download_btn.setStyleSheet("""
+                        background-color: #4CAF50; 
+                        color: white;
+                        border-radius: 4px;
+                        padding: 5px 10px;
+                        margin: 2px;
+                    """)
+                break
+
     def download_video(self, format):
         if not hasattr(self, 'video_title') or not self.video_title:
             self.video_title = "Unknown Title"
+        
+        format_id = format['format_id']
+        download_item = (self.video_title, format_id)
+        if download_item in self.downloading_items:
+            return  # 이미 다운로드 중인 아이템이면 무시
+        
+        self.downloading_items.add(download_item)
+        self.update_download_button(format_id)  # 버튼 상태 업데이트
         
         row = self.download_list.rowCount()
         self.download_list.insertRow(row)
@@ -645,8 +696,8 @@ class YouTubeDownloader(QMainWindow):
         worker = DownloadWorker(row, self.url_input.text(), format, 
                                 self.dest_input.text(), self.video_title)
         worker.signals.progress.connect(self.update_download_progress)
-        worker.signals.finished.connect(self.download_finished)
-        worker.signals.error.connect(self.download_error)
+        worker.signals.finished.connect(lambda r: self.download_finished(r, download_item))
+        worker.signals.error.connect(lambda r, e: self.download_error(r, e, download_item))
         
         self.download_workers[row] = worker
         self.threadpool.start(worker)
@@ -725,22 +776,32 @@ class YouTubeDownloader(QMainWindow):
         except Exception as e:
             print(f"Error in update_download_progress: {e}")
 
-    def download_finished(self, row):
+    def download_finished(self, row, download_item):
         # 다운로드 완료 처리
         self.download_list.setItem(row, 6, QTableWidgetItem("다운로드 완료"))
         del self.download_workers[row]
+        self.downloading_items.remove(download_item)
+        self.update_download_button(download_item[1])  # 버튼 상태 업데이트
 
-    def download_error(self, row, error_msg):
+    def download_error(self, row, error_msg, download_item):
         # 다운로드 에러 처리
         self.download_list.setItem(row, 6, QTableWidgetItem("오류 발생"))
         self.show_error_message("다운로드 오류", error_msg)
         del self.download_workers[row]
+        self.downloading_items.remove(download_item)
+        self.update_download_button(download_item[1])  # 버튼 상태 업데이트
 
     def cancel_download(self, row):
         if row in self.download_workers:
-            self.download_workers[row].cancel()
+            worker = self.download_workers[row]
+            worker.cancel()
             self.download_list.setItem(row, 6, QTableWidgetItem("취소됨"))
             del self.download_workers[row]
+            for item in self.downloading_items:
+                if item[1] == worker.format['format_id']:
+                    self.downloading_items.remove(item)
+                    self.update_download_button(item[1])  # 버튼 상태 업데이트
+                    break
 
     def setup_download_list(self):
         self.download_list = QTableWidget()
