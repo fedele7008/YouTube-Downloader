@@ -642,14 +642,37 @@ class YouTubeDownloader(QMainWindow):
             # Time Left
             self.download_list.setItem(row, 5, QTableWidgetItem(time_left))
 
-            # Status (Checkmark)
-            status_item = QTableWidgetItem("다운로드 완��" if completed else "다운로드중...")
-            status_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.download_list.setItem(row, 6, status_item)
+            # Status (Checkmark or Cancel button)
+            if completed:
+                status_item = QTableWidgetItem("다운로드 완료")
+                status_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.download_list.setItem(row, 6, status_item)
+            else:
+                cancel_button = QPushButton("다운로드 취소")
+                cancel_button.setStyleSheet("""
+                    QPushButton {
+                        background-color: #FF4136;
+                        color: white;
+                        border: none;
+                        padding: 5px 10px;
+                        border-radius: 3px;
+                    }
+                    QPushButton:hover {
+                        background-color: #FF7166;
+                    }
+                """)
+                cancel_button.clicked.connect(lambda _, r=row: self.cancel_download(r))
+                self.download_list.setCellWidget(row, 6, cancel_button)
 
         # 각 행의 높이 설정
         for i in range(self.download_list.rowCount()):
             self.download_list.setRowHeight(i, 50)
+
+    def cancel_download(self, row):
+        # 여기에 다운로드 취소 로직을 구현합니다.
+        print(f"Cancelling download for row {row}")
+        # 실제 구현 시에는 여기에 다운로드 취소 로직을 추가하고,
+        # 취소 후 UI를 업데이트하는 코드를 작성해야 합니다.
 
     def get_ffmpeg_path(self):
         # 시스템에 설치된 ffmpeg 찾기
