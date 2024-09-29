@@ -41,7 +41,7 @@ class WorkerSignals(QObject):
     error = pyqtSignal(str)
 
 class DownloadWorkerSignals(QObject):
-    progress = pyqtSignal(int, float, str)  # row, progress percentage, remaining time
+    progress = pyqtSignal(int, float, str, bool)  # row, progress percentage, remaining time, is_video
     finished = pyqtSignal(int)  # row
     error = pyqtSignal(int, str)  # row, error message
 
@@ -57,6 +57,11 @@ class DownloadWorker(QRunnable):
         self.is_cancelled = threading.Event()
         self.ydl = None
         self.full_path = None
+        self.total_bytes = 0
+        self.downloaded_bytes = 0
+        self.merging = False
+        self.is_video_download = True
+        self.max_progress = 0
 
     @staticmethod
     def generate_unique_filename(base_name, ext, output_path):
@@ -98,11 +103,14 @@ class DownloadWorker(QRunnable):
             'skip_unavailable_fragments': True,  # 사용 불가능한 프래그먼트 건너뛰기
             'keepvideo': False,  # 병합 후 원본 파일 삭제
             'overwrites': True,  # 기존 파일 덮어쓰기
+            'postprocessor_hooks': [self.postprocessor_hook],
         }
 
         try:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 self.ydl = ydl
+                info = ydl.extract_info(self.url, download=False)
+                self.total_bytes = info.get('filesize') or info.get('filesize_approx', 0)
                 if not self.is_cancelled.is_set():
                     ydl.download([self.url])
             if not self.is_cancelled.is_set():
@@ -129,25 +137,33 @@ class DownloadWorker(QRunnable):
         if self.is_cancelled.is_set():
             raise Exception("Download cancelled")
         if d['status'] == 'downloading':
-            try:
-                total_bytes = d.get('total_bytes') or d.get('total_bytes_estimate', 0)
-                downloaded_bytes = d.get('downloaded_bytes', 0)
-                
-                if total_bytes > 0:
-                    progress = (downloaded_bytes / total_bytes) * 100
-                else:
-                    progress = 0
+            self.downloaded_bytes = d.get('downloaded_bytes', 0)
+            if self.total_bytes > 0:
+                progress = (self.downloaded_bytes / self.total_bytes) * 100
+            else:
+                progress = 0
 
-                speed = d.get('speed', 0)
-                if speed:
-                    eta = (total_bytes - downloaded_bytes) / speed
-                else:
-                    eta = 0
+            if progress < self.max_progress:
+                self.is_video_download = False
+                print(f"Switching to audio download. Progress: {progress}, Max Progress: {self.max_progress}")
+            self.max_progress = max(self.max_progress, progress)
 
-                self.signals.progress.emit(self.row, progress, self.format_time(eta))
-            except Exception as e:
-                print(f"Error in progress_hook: {e}")
-                self.signals.progress.emit(self.row, 0, "N/A")
+            speed = d.get('speed', 0)
+            if speed:
+                eta = (self.total_bytes - self.downloaded_bytes) / speed
+            else:
+                eta = 0
+
+            print(f"Emitting progress: {progress:.2f}%, Is Video: {self.is_video_download}")
+            self.signals.progress.emit(self.row, progress, self.format_time(eta), self.is_video_download)
+
+    def postprocessor_hook(self, d):
+        if d['status'] == 'started':
+            self.merging = True
+            self.signals.progress.emit(self.row, 99, "Merging...", self.is_video_download)
+        elif d['status'] == 'finished':
+            self.merging = False
+            self.signals.progress.emit(self.row, 100, "Complete", self.is_video_download)
 
     @staticmethod
     def format_time(seconds):
@@ -317,7 +333,7 @@ class YouTubeDownloader(QMainWindow):
         self.worker_count = 0
 
         self.video_title = ""
-        self.downloading_items = set()  # (video_title, format_id) 튜플을 저장
+        self.downloading_items = set()  # (video_title, format_id) 튜플을 저
 
         # 새로운 레이아웃 생성
         content_layout = QVBoxLayout()
@@ -351,6 +367,16 @@ class YouTubeDownloader(QMainWindow):
             }
             QPushButton:hover {
                 background-color: #45a049;
+            }
+            QProgressBar {
+                border: 1px solid #CCCCCC;
+                border-radius: 5px;
+                text-align: center;
+                background-color: #F0F0F0;
+            }
+            QProgressBar::chunk {
+                background-color: #4CAF50;
+                border-radius: 4px;
             }
             QTabWidget::pane {
                 border: 1px solid #CCCCCC;
@@ -425,7 +451,7 @@ class YouTubeDownloader(QMainWindow):
                 background-color: #F0F0F0;
             }
             QProgressBar::chunk {
-                background-color: #1E90FF;
+                background-color: #4CAF50;
             }
             QTableCornerButton::section {
                 background-color: #E0E0E0;
@@ -551,7 +577,7 @@ class YouTubeDownloader(QMainWindow):
         self.video_url = info.get('webpage_url', '')  # 클래스 속성으로 저장
 
         self.video_title = title  # 클래스 속성으로 저장
-        self.title_label.setText(f"제��: {title}")
+        self.title_label.setText(f"제: {title}")
 
         if thumbnail_url:
             response = requests.get(thumbnail_url)
@@ -780,6 +806,9 @@ class YouTubeDownloader(QMainWindow):
         progress_layout.setContentsMargins(5, 0, 5, 0)
         self.download_list.setCellWidget(row, 4, progress_widget)
 
+        # Set initial color to blue
+        self.set_progress_bar_color(progress_bar, True)
+
         # 남은 시간
         self.download_list.setItem(row, 5, QTableWidgetItem(""))
 
@@ -822,27 +851,60 @@ class YouTubeDownloader(QMainWindow):
         default_pixmap.fill(Qt.GlobalColor.lightGray)
         label.setPixmap(default_pixmap)
 
-    def update_download_progress(self, row, progress, time_left):
+    def set_progress_bar_color(self, progress_bar, is_video):
+        if is_video:
+            color = "#2196F3"  # Green color matching the buttons
+        else:
+            color = "#4CAF50"  # Blue color with similar tone to the green
+        
+        progress_bar.setStyleSheet(f"""
+            QProgressBar {{
+                border: 1px solid #CCCCCC;
+                border-radius: 5px;
+                text-align: center;
+                background-color: #F0F0F0;
+            }}
+            QProgressBar::chunk {{
+                background-color: {color};
+                border-radius: 4px;
+            }}
+        """)
+        progress_bar.repaint()
+
+    def update_download_progress(self, row, progress, time_left, is_video):
         try:
             progress_widget = self.download_list.cellWidget(row, 4)
             if progress_widget:
                 progress_bar = progress_widget.findChild(QProgressBar)
                 if progress_bar:
                     progress_bar.setValue(int(progress))
+                    self.set_progress_bar_color(progress_bar, is_video)
+                    print(f"Updated progress bar. Value: {int(progress)}, Is Video: {is_video}")
             
             time_item = self.download_list.item(row, 5)
             if time_item:
                 time_item.setText(time_left)
             
-            # 상태 업데이트 (취소 버튼만 표시)
+            # Update status
             status_widget = self.download_list.cellWidget(row, 6)
             if status_widget:
                 status_label = status_widget.findChild(QLabel)
                 cancel_button = status_widget.findChild(QPushButton)
                 if status_label:
-                    status_label.hide()
-                if cancel_button:
-                    cancel_button.show()
+                    if time_left == "Merging...":
+                        status_label.setText("병합 중")
+                        status_label.show()
+                        if cancel_button:
+                            cancel_button.hide()
+                    elif time_left == "Complete":
+                        status_label.setText("완료됨")
+                        status_label.show()
+                        if cancel_button:
+                            cancel_button.hide()
+                    else:
+                        status_label.hide()
+                        if cancel_button:
+                            cancel_button.show()
         except Exception as e:
             print(f"Error in update_download_progress: {e}")
 
