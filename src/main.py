@@ -48,13 +48,14 @@ class DownloadWorkerSignals(QObject):
     error = pyqtSignal(int, str)  # row, error message
 
 class DownloadWorker(QRunnable):
-    def __init__(self, row, url, format, output_path, video_title):
+    def __init__(self, row, url, format, output_path, video_title, ffmpeg_path):
         super().__init__()
         self.row = row
         self.url = url
         self.format = format
         self.output_path = output_path
         self.video_title = video_title
+        self.ffmpeg_path = ffmpeg_path
         self.signals = DownloadWorkerSignals()
         self.is_cancelled = threading.Event()
         self.ydl = None
@@ -111,6 +112,7 @@ class DownloadWorker(QRunnable):
             'keepvideo': False,  # 병합 후 원본 파일 삭제
             'overwrites': True,  # 기존 파일 덮어쓰기
             'postprocessor_hooks': [self.postprocessor_hook],
+            'ffmpeg_location': self.ffmpeg_path  # ffmpeg 경로 추가
         }
 
         try:
@@ -802,7 +804,7 @@ class YouTubeDownloader(QMainWindow):
         self.add_download_item(row, format)
         
         worker = DownloadWorker(row, self.url_input.text(), format, 
-                                self.dest_input.text(), self.video_title)
+                                self.dest_input.text(), self.video_title, self.ffmpeg_path)
         worker.signals.progress.connect(self.update_download_progress)
         worker.signals.finished.connect(lambda r: self.download_finished(r, download_item))
         worker.signals.error.connect(lambda r, e: self.download_error(r, e, download_item))

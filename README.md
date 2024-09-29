@@ -5,7 +5,7 @@ Simple YouTube video downloader project
 1. Create a virtual environment
 1. Activate the virtual environment
 1. Install the dependencies `pip install -r requirements.txt`
-1. Run `pyi-makespec --onefile --windowed --add-binary "bin/mac/ffmpeg:ffmpeg" --icon=icon/YoutubeDownloader.icns src/main.py` from project root
+1. Run `pyi-makespec --onefile --windowed src/main.py` from project root
 1. Edit the spec file to following
 ```
 # -*- mode: python ; coding: utf-8 -*-
@@ -23,11 +23,10 @@ a = Analysis(
     ['src/main.py'],
     pathex=[],
     binaries=[
-        ('bin/mac/ffmpeg', 'ffmpeg')
+        ('bin/mac/*', 'ffmpeg')
     ],
     datas=[
-        ('bin/mac/ffmpeg', 'ffmpeg'),
-        ('src/assets', 'src/assets'),
+        ('src/assets', 'src/assets'),  # assets 폴더 전체를 포함
     ],
     hiddenimports=get_requirements(),
     hookspath=[],
