@@ -12,6 +12,7 @@ import shutil
 import requests
 from io import BytesIO
 import threading
+import re
 
 def get_video_formats(url, ffmpeg_path):
     ydl_opts = {
@@ -120,13 +121,7 @@ class DownloadWorker(QRunnable):
                 self.signals.error.emit(self.row, str(e))
         finally:
             # 다운로드 완료 또는 취소 후 부분 다운로드 파일 삭제
-            partial_path = self.full_path + '.part'
-            if os.path.exists(partial_path):
-                try:
-                    os.remove(partial_path)
-                    print(f"Deleted partial file: {partial_path}")
-                except Exception as e:
-                    print(f"Error deleting partial file: {e}")
+            self.cleanup_temp_files()
 
     def cancel(self):
         self.is_cancelled.set()
@@ -145,7 +140,6 @@ class DownloadWorker(QRunnable):
 
             if progress < self.max_progress:
                 self.is_video_download = False
-                print(f"Switching to audio download. Progress: {progress}, Max Progress: {self.max_progress}")
             self.max_progress = max(self.max_progress, progress)
 
             speed = d.get('speed', 0)
@@ -154,7 +148,6 @@ class DownloadWorker(QRunnable):
             else:
                 eta = 0
 
-            print(f"Emitting progress: {progress:.2f}%, Is Video: {self.is_video_download}")
             self.signals.progress.emit(self.row, progress, self.format_time(eta), self.is_video_download)
 
     def postprocessor_hook(self, d):
@@ -170,6 +163,42 @@ class DownloadWorker(QRunnable):
         m, s = divmod(seconds, 60)
         h, m = divmod(m, 60)
         return f"{h:02.0f}:{m:02.0f}:{s:02.0f}"
+
+    def cleanup_temp_files(self):
+        if self.full_path:
+            base_path, extension = os.path.splitext(self.full_path)
+            base_name = os.path.basename(base_path)
+            dir_path = os.path.dirname(self.full_path)
+
+            # Pattern to match temporary files
+            pattern = rf"{re.escape(base_name)}\.f\d+{re.escape(extension)}"
+
+            for file_name in os.listdir(dir_path):
+                if re.match(pattern, file_name):
+                    file_path = os.path.join(dir_path, file_name)
+                    try:
+                        os.remove(file_path)
+                    except Exception as e:
+                        print(f"Error deleting temporary file {file_path}: {e}")
+
+            # Pattern to match temporary files
+            pattern = rf"{re.escape(base_name)}\.f\d+{re.escape(extension)}\.part"
+
+            for file_name in os.listdir(dir_path):
+                if re.match(pattern, file_name):
+                    file_path = os.path.join(dir_path, file_name)
+                    try:
+                        os.remove(file_path)
+                    except Exception as e:
+                        print(f"Error deleting temporary file {file_path}: {e}")
+
+            # Check for and delete .part file
+            part_file = f"{self.full_path}.part"
+            if os.path.exists(part_file):
+                try:
+                    os.remove(part_file)
+                except Exception as e:
+                    print(f"Error deleting partial file {part_file}: {e}")
 
 class YouTubeDownloader(QMainWindow):
     def __init__(self):
@@ -879,7 +908,6 @@ class YouTubeDownloader(QMainWindow):
                 if progress_bar:
                     progress_bar.setValue(int(progress))
                     self.set_progress_bar_color(progress_bar, is_video)
-                    print(f"Updated progress bar. Value: {int(progress)}, Is Video: {is_video}")
             
             time_item = self.download_list.item(row, 5)
             if time_item:
@@ -892,7 +920,7 @@ class YouTubeDownloader(QMainWindow):
                 cancel_button = status_widget.findChild(QPushButton)
                 if status_label:
                     if time_left == "Merging...":
-                        status_label.setText("병합 중")
+                        status_label.setText("병합중")
                         status_label.show()
                         if cancel_button:
                             cancel_button.hide()
