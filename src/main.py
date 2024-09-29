@@ -4,12 +4,13 @@ from pathlib import Path
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
                              QLabel, QLineEdit, QPushButton, QTabWidget, QFileDialog, 
                              QTableWidget, QTableWidgetItem, QHeaderView, QProgressBar, QGridLayout,
-                             QMessageBox, QStackedWidget, QDialogButtonBox)
+                             QMessageBox, QStackedWidget, QDialogButtonBox, QSizePolicy)
 from PyQt6.QtCore import Qt, QThread, QRunnable, QThreadPool, pyqtSignal, pyqtSlot, QObject, QSize, QUrl
 from PyQt6.QtGui import QPalette, QColor, QPixmap, QIcon, QMovie, QImage, QFont, QDesktopServices
 import yt_dlp
 import shutil
 import requests
+from io import BytesIO
 
 def get_video_formats(url, ffmpeg_path):
     ydl_opts = {
@@ -225,7 +226,7 @@ class YouTubeDownloader(QMainWindow):
         video_text_layout.addWidget(self.duration_label)
         
         # 수직 레이아웃을 메인 레이아웃에 추가
-        self.video_info_layout.addLayout(video_text_layout, 1)  # 1은 stretch factor
+        self.video_info_layout.addLayout(video_text_layout, 1)  # 1 stretch factor
         
         self.video_content_layout.addWidget(self.video_info_widget)
 
@@ -574,6 +575,9 @@ class YouTubeDownloader(QMainWindow):
 
     def populate_video_table(self, info):
         self.video_table.setRowCount(0)
+        self.video_title = info.get('title', 'Unknown Title')
+        self.thumbnail_url = info.get('thumbnail')  # 썸네일 URL 저장
+        
         # 모든 포맷을 해상도별로 그룹화
         formats_by_resolution_format = {}
         for format in info['formats']:
@@ -705,12 +709,21 @@ class YouTubeDownloader(QMainWindow):
     def add_download_item(self, row, format):
         # 썸네일
         thumb_label = QLabel()
-        if hasattr(self, 'thumbnail_pixmap'):
-            thumb_label.setPixmap(self.thumbnail_pixmap.scaled(70, 50, Qt.AspectRatioMode.KeepAspectRatio))
+        if hasattr(self, 'thumbnail_url') and self.thumbnail_url:
+            try:
+                response = requests.get(self.thumbnail_url)
+                if response.status_code == 200:
+                    pixmap = QPixmap()
+                    pixmap.loadFromData(response.content)
+                    thumb_label.setPixmap(pixmap.scaled(70, 50, Qt.AspectRatioMode.KeepAspectRatio))
+                else:
+                    self.set_default_thumbnail(thumb_label)
+            except Exception as e:
+                print(f"Error loading thumbnail: {e}")
+                self.set_default_thumbnail(thumb_label)
         else:
-            default_pixmap = QPixmap(70, 50)
-            default_pixmap.fill(Qt.GlobalColor.lightGray)
-            thumb_label.setPixmap(default_pixmap)
+            self.set_default_thumbnail(thumb_label)
+        
         thumb_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.download_list.setCellWidget(row, 0, thumb_label)
 
@@ -722,7 +735,7 @@ class YouTubeDownloader(QMainWindow):
 
         # 파일 크기
         size = format.get('filesize') or format.get('filesize_approx')
-        size_str = f"{size / 1024 / 1024:.1f} MB" if size else "N/A"
+        size_str = self.format_size(size) if size else "N/A"
         self.download_list.setItem(row, 3, QTableWidgetItem(size_str))
 
         # 진행률
@@ -739,23 +752,43 @@ class YouTubeDownloader(QMainWindow):
         self.download_list.setItem(row, 5, QTableWidgetItem(""))
 
         # 상태 (취소 버튼)
+        status_widget = QWidget()
+        status_layout = QVBoxLayout(status_widget)
+        status_layout.setContentsMargins(2, 2, 2, 2)
+        status_layout.setSpacing(2)
+        
+        status_label = QLabel("대기 중")
+        status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        status_label.hide()  # 초기에는 숨김
+        
         cancel_button = QPushButton("취소")
         cancel_button.setStyleSheet("""
             QPushButton {
                 background-color: #FF4136;
                 color: white;
                 border: none;
-                padding: 5px 10px;
+                padding: 5px;
                 border-radius: 3px;
+                font-size: 12px;
             }
             QPushButton:hover {
                 background-color: #FF7166;
             }
         """)
         cancel_button.clicked.connect(lambda: self.cancel_download(row))
-        self.download_list.setCellWidget(row, 6, cancel_button)
+        cancel_button.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        
+        status_layout.addWidget(status_label)
+        status_layout.addWidget(cancel_button)
+        
+        self.download_list.setCellWidget(row, 6, status_widget)
 
-        self.download_list.setRowHeight(row, 100)
+        self.download_list.setRowHeight(row, 50)
+
+    def set_default_thumbnail(self, label):
+        default_pixmap = QPixmap(70, 50)
+        default_pixmap.fill(Qt.GlobalColor.lightGray)
+        label.setPixmap(default_pixmap)
 
     def update_download_progress(self, row, progress, time_left):
         try:
@@ -769,38 +802,65 @@ class YouTubeDownloader(QMainWindow):
             if time_item:
                 time_item.setText(time_left)
             
-            # 상태 업데이트
-            status_item = self.download_list.item(row, 6)
-            if status_item:
-                status_item.setText(f"다운로드 중 ({progress:.1f}%)")
+            # 상태 업데이트 (취소 버튼만 표시)
+            status_widget = self.download_list.cellWidget(row, 6)
+            if status_widget:
+                status_label = status_widget.findChild(QLabel)
+                cancel_button = status_widget.findChild(QPushButton)
+                if status_label:
+                    status_label.hide()
+                if cancel_button:
+                    cancel_button.show()
         except Exception as e:
             print(f"Error in update_download_progress: {e}")
 
     def download_finished(self, row, download_item):
-        # 다운로드 완료 처리
-        self.download_list.setItem(row, 6, QTableWidgetItem("다운로드 완료"))
+        status_widget = self.download_list.cellWidget(row, 6)
+        if status_widget:
+            status_label = status_widget.findChild(QLabel)
+            cancel_button = status_widget.findChild(QPushButton)
+            if status_label:
+                status_label.setText("다운로드 완료")
+                status_label.show()
+            if cancel_button:
+                cancel_button.hide()
         del self.download_workers[row]
         self.downloading_items.remove(download_item)
-        self.update_download_button(download_item[1])  # 버튼 상태 업데이트
+        self.update_download_button(download_item[1])
 
     def download_error(self, row, error_msg, download_item):
-        # 다운로드 에러 처리
-        self.download_list.setItem(row, 6, QTableWidgetItem("오류 발생"))
+        status_widget = self.download_list.cellWidget(row, 6)
+        if status_widget:
+            status_label = status_widget.findChild(QLabel)
+            cancel_button = status_widget.findChild(QPushButton)
+            if status_label:
+                status_label.setText("오류 발생")
+                status_label.show()
+            if cancel_button:
+                cancel_button.hide()
         self.show_error_message("다운로드 오류", error_msg)
         del self.download_workers[row]
         self.downloading_items.remove(download_item)
-        self.update_download_button(download_item[1])  # 버튼 상태 업데이트
+        self.update_download_button(download_item[1])
 
     def cancel_download(self, row):
         if row in self.download_workers:
             worker = self.download_workers[row]
             worker.cancel()
-            self.download_list.setItem(row, 6, QTableWidgetItem("취소됨"))
+            status_widget = self.download_list.cellWidget(row, 6)
+            if status_widget:
+                status_label = status_widget.findChild(QLabel)
+                cancel_button = status_widget.findChild(QPushButton)
+                if status_label:
+                    status_label.setText("취소됨")
+                    status_label.show()
+                if cancel_button:
+                    cancel_button.hide()
             del self.download_workers[row]
             for item in self.downloading_items:
                 if item[1] == worker.format['format_id']:
                     self.downloading_items.remove(item)
-                    self.update_download_button(item[1])  # 버튼 상태 업데이트
+                    self.update_download_button(item[1])
                     break
 
     def setup_download_list(self):
@@ -817,11 +877,11 @@ class YouTubeDownloader(QMainWindow):
         header.setSectionResizeMode(5, QHeaderView.ResizeMode.Fixed)
         header.setSectionResizeMode(6, QHeaderView.ResizeMode.Fixed)
         
-        self.download_list.setColumnWidth(0, 120)  # 썸네일
-        self.download_list.setColumnWidth(2, 100)  # 해상도
+        self.download_list.setColumnWidth(0, 90)  # 썸네일
+        self.download_list.setColumnWidth(2, 60)  # 해상도
         self.download_list.setColumnWidth(3, 100)  # 파일 크기
-        self.download_list.setColumnWidth(5, 100)  # 남은 시간
-        self.download_list.setColumnWidth(6, 120)  # 상태
+        self.download_list.setColumnWidth(5, 80)  # 남은 시간
+        self.download_list.setColumnWidth(6, 100)  # 상태 (너비를 늘림)
 
     def get_ffmpeg_path(self):
         # 시스템에 설치된 ffmpeg 찾기
