@@ -206,6 +206,11 @@ class DownloadWorker(QRunnable):
                 except Exception as e:
                     print(f"Error deleting partial file {part_file}: {e}")
 
+class SelectAllLineEdit(QLineEdit):
+    def mousePressEvent(self, event):
+        super().mousePressEvent(event)
+        self.selectAll()
+
 class YouTubeDownloader(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -223,7 +228,8 @@ class YouTubeDownloader(QMainWindow):
         input_layout = QGridLayout()
         url_label = QLabel("영상 링크:")
         url_label.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-        self.url_input = QLineEdit()
+        self.url_input = SelectAllLineEdit()
+        self.url_input.setPlaceholderText("YouTube 비디오 URL을 입력하세요")
         input_layout.addWidget(url_label, 0, 0)
         input_layout.addWidget(self.url_input, 0, 1, 1, 2)
 
@@ -737,7 +743,7 @@ class YouTubeDownloader(QMainWindow):
             self.video_table.setRowHeight(i, 40)
 
     def format_size(self, size_bytes):
-        # 바이트를 적절한 단위로 변환
+        # 바이트를 적���한 단위로 변환
         if size_bytes < 1024:
             return f"{size_bytes} B"
         elif size_bytes < 1024 * 1024:
