@@ -3,22 +3,54 @@ import os
 from pathlib import Path
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
                              QLabel, QLineEdit, QPushButton, QTabWidget, QFileDialog, 
-                             QTableWidget, QTableWidgetItem, QHeaderView, QProgressBar, QGridLayout)
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QPalette, QColor, QPixmap, QIcon
+                             QTableWidget, QTableWidgetItem, QHeaderView, QProgressBar, QGridLayout,
+                             QMessageBox, QStackedWidget, QDialogButtonBox)
+from PyQt6.QtCore import Qt, QThread, QRunnable, QThreadPool, pyqtSignal, pyqtSlot, QObject, QSize, QUrl
+from PyQt6.QtGui import QPalette, QColor, QPixmap, QIcon, QMovie, QImage, QFont, QDesktopServices
+import yt_dlp
+import shutil
+import requests
+
+def get_video_formats(url, ffmpeg_path):
+    ydl_opts = {
+        'quiet': True,
+        'ffmpeg_location': ffmpeg_path
+    }
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        # Extract video information without downloading
+        info_dict = ydl.extract_info(url, download=False)
+        return info_dict
+
+class SearchWorker(QRunnable):
+    def __init__(self, url, ffmpeg_path):
+        super().__init__()
+        self.url = url
+        self.ffmpeg_path = ffmpeg_path
+        self.signals = WorkerSignals()
+
+    def run(self):
+        try:
+            video_formats = get_video_formats(self.url, self.ffmpeg_path)
+            self.signals.result.emit(video_formats)
+        except Exception as e:
+            self.signals.error.emit(str(e))
+
+class WorkerSignals(QObject):
+    result = pyqtSignal(object)
+    error = pyqtSignal(str)
 
 class YouTubeDownloader(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("유튜브 다운로더")
-        self.setGeometry(100, 100, 800, 600)
+        self.setGeometry(100, 100, 1200, 800)
 
         self.apply_global_style()
 
         main_widget = QWidget()
         self.setCentralWidget(main_widget)
-        main_layout = QVBoxLayout()
-        main_widget.setLayout(main_layout)
+        self.main_layout = QVBoxLayout()
+        main_widget.setLayout(self.main_layout)
 
         # 입력 필드 그리드 레이아웃
         input_layout = QGridLayout()
@@ -38,15 +70,15 @@ class YouTubeDownloader(QMainWindow):
         input_layout.addWidget(self.dest_input, 1, 1)
         input_layout.addWidget(browse_button, 1, 2)
 
-        main_layout.addLayout(input_layout)
+        self.main_layout.addLayout(input_layout)
 
         # 검색 버튼
         self.search_button = QPushButton("검색")
         self.search_button.clicked.connect(self.search_video)
-        main_layout.addWidget(self.search_button)
+        self.main_layout.addWidget(self.search_button)
 
         # 패딩 추가
-        main_layout.addSpacing(10)
+        self.main_layout.addSpacing(10)
 
         # 탭 위젯
         self.tab_widget = QTabWidget()
@@ -54,10 +86,71 @@ class YouTubeDownloader(QMainWindow):
         self.audio_tab = QWidget()
         self.tab_widget.addTab(self.video_tab, "동영상")
         self.tab_widget.addTab(self.audio_tab, "오디오")
-        main_layout.addWidget(self.tab_widget)
+        self.main_layout.addWidget(self.tab_widget)
 
         # 비디오 탭 내용
         video_layout = QVBoxLayout(self.video_tab)
+        
+        # 스택 위젯 생성
+        self.video_stack = QStackedWidget()
+        video_layout.addWidget(self.video_stack)
+
+        # 비디오 정보와 테이블을 포함할 컨테이너 위젯
+        self.video_content_widget = QWidget()
+        self.video_content_layout = QVBoxLayout(self.video_content_widget)
+        self.video_content_layout.setSpacing(10)  # 위젯 사이의 간격을 10픽셀로 설정
+        self.video_content_layout.setContentsMargins(10, 10, 10, 10)  # 마진 설정
+        
+        # 비디오 정보 컨테이너
+        self.video_info_widget = QWidget()
+        self.video_info_layout = QHBoxLayout(self.video_info_widget)
+        self.video_info_layout.setContentsMargins(0, 0, 0, 0)  # 내부 마진 제거
+        
+        # 썸네일 레이블
+        self.thumbnail_label = ClickableLabel()
+        self.thumbnail_label.setFixedSize(120, 90)  # 16:9 비율
+        self.thumbnail_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.thumbnail_label.clicked.connect(self.open_video_url)
+        self.video_info_layout.addWidget(self.thumbnail_label)
+        
+        # 비디오 정보를 담을 수직 레이아웃
+        video_text_layout = QVBoxLayout()
+        video_text_layout.setSpacing(0)  # 위젯 사이의 간격을 0으로 설정
+        video_text_layout.setContentsMargins(5, 0, 0, 0)  # 왼쪽에만 약간의 마진 추가
+        
+        # 비디오 제목 레이블
+        self.title_label = QLabel()
+        self.title_label.setWordWrap(True)
+        self.title_label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+        font = self.title_label.font()
+        font.setPointSize(font.pointSize() + 6)
+        font.setBold(True)
+        self.title_label.setFont(font)
+        self.title_label.setContentsMargins(0, 0, 0, 0)
+        video_text_layout.addWidget(self.title_label)
+        
+        # 채널 이름 레이블
+        self.channel_label = QLabel()
+        self.channel_label.setContentsMargins(0, 0, 0, 0)
+        self.channel_label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+        video_text_layout.addWidget(self.channel_label)
+        
+        # 비디오 길이 레이블
+        self.duration_label = QLabel()
+        self.duration_label.setStyleSheet("color: gray;")
+        self.duration_label.setContentsMargins(0, 0, 0, 0)
+        self.duration_label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignBottom)
+        video_text_layout.addWidget(self.duration_label)
+        
+        # 수직 레이아웃을 메인 레이아웃에 추가
+        self.video_info_layout.addLayout(video_text_layout, 1)  # 1은 stretch factor
+        
+        self.video_content_layout.addWidget(self.video_info_widget)
+
+        # 초기에 비디오 정보 위젯 숨기기
+        self.video_info_widget.hide()
+
+        # 비디오 테이블
         self.video_table = QTableWidget()
         self.video_table.setColumnCount(4)
         self.video_table.setHorizontalHeaderLabels(["화질", "포멧", "파일 크기", "다운로드"])
@@ -66,7 +159,41 @@ class YouTubeDownloader(QMainWindow):
         self.video_table.setSelectionMode(QTableWidget.SelectionMode.NoSelection)
         self.video_table.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.video_table.verticalHeader().setVisible(False)
-        video_layout.addWidget(self.video_table)
+        self.video_table.setContentsMargins(0, 0, 0, 0)
+        self.video_table.setStyleSheet("""
+            QTableWidget {
+                border: 1px solid #CCCCCC;
+                background-color: white;
+                margin-top: 0px;  /* 상단 마진 제거 */
+            }
+            QTableWidget::item {
+                padding: 5px;
+                border-right: 1px solid #CCCCCC;
+            }
+            QHeaderView::section {
+                background-color: #E0E0E0;
+                padding: 5px;
+                border: none;
+                border-right: 1px solid #CCCCCC;
+                border-bottom: 1px solid #CCCCCC;
+            }
+        """)
+
+        self.video_content_layout.addWidget(self.video_table)
+
+        self.video_stack.addWidget(self.video_content_widget)
+
+        # 로딩 위젯 생성
+        self.loading_widget = QLabel()
+        self.loading_widget.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        gif_path = os.path.join(os.path.dirname(__file__), 'assets', 'loading.gif')
+        self.loading_movie = QMovie(gif_path)
+        if self.loading_movie.isValid():
+            self.loading_movie.setScaledSize(QSize(50, 50))
+            self.loading_widget.setMovie(self.loading_movie)
+        else:
+            print(f"Error: Could not load the GIF file at {gif_path}")
+        self.video_stack.addWidget(self.loading_widget)
 
         # 다운로드 목록 (테이블 위젯으로 변경)
         self.download_list = QTableWidget()
@@ -79,12 +206,17 @@ class YouTubeDownloader(QMainWindow):
         self.download_list.setSelectionMode(QTableWidget.SelectionMode.NoSelection)
         self.download_list.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.download_list.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
-        main_layout.addWidget(self.download_list)
+        self.main_layout.addWidget(self.download_list)
 
         self.apply_widget_styles()
 
         # 더미 데이터로 다운로드 목록 채우기
         self.populate_download_list()
+
+        # 스레드풀 초기화
+        self.threadpool = QThreadPool()
+
+        self.ffmpeg_path = self.get_ffmpeg_path()
 
     def apply_global_style(self):
         self.setStyleSheet("""
@@ -209,28 +341,193 @@ class YouTubeDownloader(QMainWindow):
             self.dest_input.setText(folder)
 
     def search_video(self):
-        # URL 유효성 검사 및 비디오 정보 가져오기 구현
-        # 예시 데이터로 테이블 채우기
-        self.populate_video_table()
+        # 다운로드 경로 검증
+        dest_path = self.dest_input.text()
+        if not os.path.exists(dest_path) or not os.access(dest_path, os.W_OK):
+            self.show_error_message("경로 오류", "유효하지 않거나 접근할 수 없는 다운로드 경로입니다.")
+            return
 
-    def populate_video_table(self):
-        self.video_table.setRowCount(3)
-        resolutions = ["1080p (mp4)", "720p (mp4)", "360p (mp4)"]
-        file_sizes = ["130.7 MB", "37 MB", "29 MB"]
+        # YouTube 링크 검증
+        video_url = self.url_input.text().strip()
+        if not video_url:
+            self.show_error_message("입력 오류", "YouTube 비디오 URL을 입력해주세요.")
+            return
+
+        # UI 업데이트
+        self.search_button.setEnabled(False)
+        self.video_stack.setCurrentWidget(self.loading_widget)
+        self.loading_movie.start()
+
+        # 검색 시작 시 비디오 정보 초기화
+        self.clear_video_info()
+
+        # 워커 생성 및 실행
+        worker = SearchWorker(video_url, self.ffmpeg_path)
+        worker.signals.result.connect(self.search_complete)
+        worker.signals.error.connect(self.search_error)
+        self.threadpool.start(worker)
+
+    def clear_video_info(self):
+        """비디오 정보를 초기화하고 숨깁니다."""
+        self.thumbnail_label.clear()
+        self.title_label.clear()
+        self.channel_label.clear()
+        self.duration_label.clear()
+        self.video_info_widget.hide()
+        self.video_table.setRowCount(0)
+
+    def search_complete(self, info):
+        self.loading_movie.stop()
+        self.video_stack.setCurrentWidget(self.video_content_widget)
+        self.search_button.setEnabled(True)
+        self.populate_video_info(info)
+        self.populate_video_table(info)
+
+    def search_error(self, error_msg):
+        self.loading_movie.stop()
+        self.video_stack.setCurrentWidget(self.video_content_widget)
+        self.search_button.setEnabled(True)
+        self.clear_video_info()  # 에러 발생 시 비디오 정보 초기화
+
+        error_box = QMessageBox(self)
+        error_box.setIcon(QMessageBox.Icon.Warning)
+        error_box.setWindowTitle("오류")
+        error_box.setText("비디오 정보를 가져오는 데 실패했습니다.")
+        error_box.setInformativeText(f"오류 메시지: {error_msg}")
+        error_box.setStandardButtons(QMessageBox.StandardButton.Ok)
         
-        for i, (res, size) in enumerate(zip(resolutions, file_sizes)):
-            resolution_item = QTableWidgetItem(res.split()[0])
-            resolution_item.setFlags(resolution_item.flags() & ~Qt.ItemFlag.ItemIsSelectable)
-            self.video_table.setItem(i, 0, resolution_item)
+        # 오류 메시지 박스의 스타일 설정
+        error_box.setStyleSheet("""
+            QMessageBox {
+                background-color: #f0f0f0;
+            }
+            QMessageBox QLabel {
+                color: #000000;
+                font-size: 14px;
+            }
+            QMessageBox QPushButton {
+                background-color: #4CAF50;
+                color: white;
+                padding: 5px 15px;
+                border: none;
+                border-radius: 3px;
+                font-size: 14px;
+            }
+            QMessageBox QPushButton:hover {
+                background-color: #45a049;
+            }
+        """)
+        
+        # 버튼 스타일 직접 설정
+        button = error_box.button(QMessageBox.StandardButton.Ok)
+        if button:
+            button.setStyleSheet("""
+                background-color: #4CAF50;
+                color: white;
+                padding: 5px 15px;
+                border: none;
+                border-radius: 3px;
+                font-size: 14px;
+            """)
 
-            format_item = QTableWidgetItem(res.split()[1])
-            format_item.setFlags(format_item.flags() & ~Qt.ItemFlag.ItemIsSelectable)
-            self.video_table.setItem(i, 1, format_item)
+        error_box.exec()
 
-            size_item = QTableWidgetItem(size)
-            size_item.setFlags(size_item.flags() & ~Qt.ItemFlag.ItemIsSelectable)
-            self.video_table.setItem(i, 2, size_item)
+    def populate_video_info(self, info):
+        thumbnail_url = info.get('thumbnail')
+        title = info.get('title', '')
+        channel = info.get('channel', '')
+        channel_url = info.get('channel_url', '')
+        duration = info.get('duration')
+        self.video_url = info.get('webpage_url', '')  # 클래스 속성으로 저장
+
+        if thumbnail_url:
+            response = requests.get(thumbnail_url)
+            if response.status_code == 200:
+                image = QImage()
+                image.loadFromData(response.content)
+                pixmap = QPixmap.fromImage(image)
+                scaled_pixmap = pixmap.scaledToHeight(120, Qt.TransformationMode.SmoothTransformation)
+                self.thumbnail_label.setPixmap(scaled_pixmap)
+                self.thumbnail_label.setFixedSize(scaled_pixmap.size())
+                self.thumbnail_label.setCursor(Qt.CursorShape.PointingHandCursor)
+                self.thumbnail_label.show()
+            else:
+                self.thumbnail_label.hide()
+        else:
+            self.thumbnail_label.hide()
+
+        if title:
+            self.title_label.setText(f'<a href="{self.video_url}" style="color: black; text-decoration: none;">{title}</a>')
+            self.title_label.setOpenExternalLinks(True)
+            self.title_label.show()
+        else:
+            self.title_label.hide()
+
+        if channel:
+            self.channel_label.setText(f'<a href="{channel_url}" style="color: black; text-decoration: none;">{channel}</a>')
+            self.channel_label.setOpenExternalLinks(True)
+            self.channel_label.show()
+        else:
+            self.channel_label.hide()
+
+        if duration:
+            duration_str = self.format_duration(duration)
+            self.duration_label.setText(f"길이: {duration_str}")
+            self.duration_label.show()
+        else:
+            self.duration_label.hide()
+
+        # 썸네일, 제목, 채널, 또는 길이 중 하나라도 있으면 비디오 정보 위젯을 표시
+        if thumbnail_url or title or channel or duration:
+            self.video_info_widget.show()
+        else:
+            self.video_info_widget.hide()
+
+    def format_duration(self, seconds):
+        """초를 HH:MM:SS 형식으로 변환합니다."""
+        hours, remainder = divmod(seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        if hours:
+            return f"{hours:02}:{minutes:02}:{seconds:02}"
+        else:
+            return f"{minutes:02}:{seconds:02}"
+
+    def populate_video_table(self, info):
+        self.video_table.setRowCount(0)
+        # 모든 포맷을 해상도별로 그룹화
+        formats_by_resolution_format = {}
+        for format in info['formats']:
+            height = format.get('height')
+            ext = format.get('ext', 'Unknown')
+            if height is not None and ext != 'mhtml':
+                key = (ext, height)
+                if key not in formats_by_resolution_format:
+                    formats_by_resolution_format[key] = []
+                formats_by_resolution_format[key].append(format)
+        
+        # 각 해상도 및 포맷별로 최고 품질(파일 크기가 가장 큰) 포맷 선택
+        sorted_formats = sorted(formats_by_resolution_format.items(), key=lambda x: (x[0][0] != 'mp4', x[0][0], -x[0][1]))
+        for (ext, height), formats in sorted_formats:
+            best_format = max(formats, key=lambda f: f.get('filesize', 0) or 0)
             
+            row_position = self.video_table.rowCount()
+            self.video_table.insertRow(row_position)
+            
+            # 해상도
+            resolution = f"{height}p"
+            self.video_table.setItem(row_position, 0, QTableWidgetItem(resolution))
+            
+            # 포맷
+            self.video_table.setItem(row_position, 1, QTableWidgetItem(ext))
+            
+            # 파일 크기
+            filesize = best_format.get('filesize')
+            if filesize:
+                filesize_str = self.format_size(filesize)
+            else:
+                filesize_str = 'Unknown'
+            self.video_table.setItem(row_position, 2, QTableWidgetItem(filesize_str))
+            # 다운로드 버튼
             download_btn = QPushButton("다운로드")
             download_btn.setStyleSheet("""
                 background-color: #4CAF50; 
@@ -239,22 +536,27 @@ class YouTubeDownloader(QMainWindow):
                 padding: 5px 10px;
                 margin: 2px;
             """)
-            download_btn.clicked.connect(lambda _, row=i: self.download_video(row))
-            
-            self.video_table.setCellWidget(i, 3, download_btn)
-            
-            # 각 행의 높이를 40픽셀로 설정
+            download_btn.clicked.connect(lambda _, f=best_format: self.download_video(f))
+            self.video_table.setCellWidget(row_position, 3, download_btn)
+
+        # 각 행의 높이를 40픽셀로 설정
+        for i in range(self.video_table.rowCount()):
             self.video_table.setRowHeight(i, 40)
 
-        # 테이블의 수직 헤더 (행 번호)를 숨깁니다
-        self.video_table.verticalHeader().setVisible(False)
+    def format_size(self, size_bytes):
+        # 바이트를 적절한 단위로 변환
+        if size_bytes < 1024:
+            return f"{size_bytes} B"
+        elif size_bytes < 1024 * 1024:
+            return f"{size_bytes/1024:.2f} KB"
+        elif size_bytes < 1024 * 1024 * 1024:
+            return f"{size_bytes/(1024*1024):.2f} MB"
+        else:
+            return f"{size_bytes/(1024*1024*1024):.2f} GB"
 
     def download_video(self, row):
-        # 선택된 행의 비디오 다운로드 구현
-        resolution = self.video_table.item(row, 0).text()
-        format = self.video_table.item(row, 1).text()
-        print(f"Downloading video: {resolution} {format}")
-        # 여기에 실제 다운로드 로직을 구현하세요
+        # 아직 구현하지 않음
+        pass
 
     def populate_download_list(self):
         dummy_data = [
@@ -326,7 +628,7 @@ class YouTubeDownloader(QMainWindow):
             progress_bar = QProgressBar()
             progress_bar.setValue(progress)
             progress_bar.setTextVisible(False)
-            progress_bar.setFixedHeight(15)  # 프로그레스 바의 높이를 15픽셀로 고정
+            progress_bar.setFixedHeight(15)  # 프로그레스 바의 높이를 15픽셀 고정
             
             # 프로그레스 바를 포함할 위젯 생성
             progress_widget = QWidget()
@@ -341,13 +643,81 @@ class YouTubeDownloader(QMainWindow):
             self.download_list.setItem(row, 5, QTableWidgetItem(time_left))
 
             # Status (Checkmark)
-            status_item = QTableWidgetItem("다운로드 완료" if completed else "다운로드중...")
+            status_item = QTableWidgetItem("다운로드 완��" if completed else "다운로드중...")
             status_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.download_list.setItem(row, 6, status_item)
 
         # 각 행의 높이 설정
         for i in range(self.download_list.rowCount()):
             self.download_list.setRowHeight(i, 50)
+
+    def get_ffmpeg_path(self):
+        # 시스템에 설치된 ffmpeg 찾기
+        ffmpeg_path = shutil.which('ffmpeg')
+        if ffmpeg_path:
+            return ffmpeg_path
+        
+        # 시스템에서 찾지 못한 경우, 기존 로직 사용
+        if getattr(sys, 'frozen', False):
+            # PyInstaller로 패키징 경우
+            return os.path.join(sys._MEIPASS, 'ffmpeg')
+        else:
+            # 개발 환경에서 실행되는 경우
+            return os.path.join(os.path.dirname(__file__), 'ffmpeg')
+
+    def show_error_message(self, title, message):
+        error_box = QMessageBox(self)
+        error_box.setIcon(QMessageBox.Icon.Warning)
+        error_box.setWindowTitle(title)
+        error_box.setText(message)
+        error_box.setStandardButtons(QMessageBox.StandardButton.Ok)
+        
+        # 오류 메시지 박스의 스타일 설정
+        error_box.setStyleSheet("""
+            QMessageBox {
+                background-color: #f0f0f0;
+            }
+            QMessageBox QLabel {
+                color: #000000;
+                font-size: 14px;
+            }
+            QMessageBox QPushButton {
+                background-color: #4CAF50;
+                color: white;
+                padding: 5px 15px;
+                border: none;
+                border-radius: 3px;
+                font-size: 14px;
+            }
+            QMessageBox QPushButton:hover {
+                background-color: #45a049;
+            }
+        """)
+        
+        # 버튼 스타일 직접 설정
+        button = error_box.button(QMessageBox.StandardButton.Ok)
+        if button:
+            button.setStyleSheet("""
+                background-color: #4CAF50;
+                color: white;
+                padding: 5px 15px;
+                border: none;
+                border-radius: 3px;
+                font-size: 14px;
+            """)
+
+        error_box.exec()
+
+    def open_video_url(self):
+        if hasattr(self, 'video_url') and self.video_url:
+            QDesktopServices.openUrl(QUrl(self.video_url))
+
+class ClickableLabel(QLabel):
+    clicked = pyqtSignal()
+
+    def mousePressEvent(self, event):
+        self.clicked.emit()
+        super().mousePressEvent(event)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
