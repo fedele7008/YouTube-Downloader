@@ -248,6 +248,7 @@ class YouTubeDownloader(QMainWindow):
         # 검색 버튼
         self.search_button = QPushButton("검색")
         self.search_button.clicked.connect(self.search_video)
+        self.url_input.returnPressed.connect(self.search_video)
         self.main_layout.addWidget(self.search_button)
 
         # 탭 위젯
@@ -743,7 +744,7 @@ class YouTubeDownloader(QMainWindow):
             self.video_table.setRowHeight(i, 40)
 
     def format_size(self, size_bytes):
-        # 바이트를 적���한 단위로 변환
+        # 바이트를 적한 단위로 변환
         if size_bytes < 1024:
             return f"{size_bytes} B"
         elif size_bytes < 1024 * 1024:
