@@ -42,7 +42,7 @@ class WorkerSignals(QObject):
     error = pyqtSignal(str)
 
 class DownloadWorkerSignals(QObject):
-    progress = pyqtSignal(int, float, str, bool)  # row, progress percentage, remaining time, is_video
+    progress = pyqtSignal(int, float, str, bool, bool)  # row, progress percentage, remaining time, is_merged_format, is_video
     finished = pyqtSignal(int)  # row
     error = pyqtSignal(int, str)  # row, error message
 
@@ -61,8 +61,13 @@ class DownloadWorker(QRunnable):
         self.total_bytes = 0
         self.downloaded_bytes = 0
         self.merging = False
+        self.is_merged_format = self.check_if_merged_format(format)
         self.is_video_download = True
         self.max_progress = 0
+
+    def check_if_merged_format(self, format):
+        return 'acodec' in format and format['acodec'] != 'none' and \
+               'vcodec' in format and format['vcodec'] != 'none'
 
     @staticmethod
     def generate_unique_filename(base_name, ext, output_path):
@@ -138,7 +143,7 @@ class DownloadWorker(QRunnable):
             else:
                 progress = 0
 
-            if progress < self.max_progress:
+            if progress < self.max_progress and not self.is_merged_format:
                 self.is_video_download = False
             self.max_progress = max(self.max_progress, progress)
 
@@ -148,15 +153,16 @@ class DownloadWorker(QRunnable):
             else:
                 eta = 0
 
-            self.signals.progress.emit(self.row, progress, self.format_time(eta), self.is_video_download)
+            print(f"Emitting progress: {progress:.2f}%, Is Merged Format: {self.is_merged_format}, Is Video: {self.is_video_download}")
+            self.signals.progress.emit(self.row, progress, self.format_time(eta), self.is_merged_format, self.is_video_download)
 
     def postprocessor_hook(self, d):
         if d['status'] == 'started':
             self.merging = True
-            self.signals.progress.emit(self.row, 99, "Merging...", self.is_video_download)
+            self.signals.progress.emit(self.row, 99, "Merging...", self.is_merged_format, self.is_video_download)
         elif d['status'] == 'finished':
             self.merging = False
-            self.signals.progress.emit(self.row, 100, "Complete", self.is_video_download)
+            self.signals.progress.emit(self.row, 100, "Complete", self.is_merged_format, self.is_video_download)
 
     @staticmethod
     def format_time(seconds):
@@ -825,7 +831,7 @@ class YouTubeDownloader(QMainWindow):
         size_str = self.format_size(size) if size else "N/A"
         self.download_list.setItem(row, 3, QTableWidgetItem(size_str))
 
-        # 진행률
+        # Progress bar
         progress_bar = QProgressBar()
         progress_bar.setValue(0)
         progress_bar.setTextVisible(False)
@@ -835,13 +841,14 @@ class YouTubeDownloader(QMainWindow):
         progress_layout.setContentsMargins(5, 0, 5, 0)
         self.download_list.setCellWidget(row, 4, progress_widget)
 
-        # Set initial color to blue
-        self.set_progress_bar_color(progress_bar, True)
+        # Set initial color based on whether it's a merged format
+        is_merged_format = self.check_if_merged_format(format)
+        self.set_progress_bar_color(progress_bar, is_merged_format, True)
 
         # 남은 시간
         self.download_list.setItem(row, 5, QTableWidgetItem(""))
 
-        # 상태 (취소 버��)
+        # 상태 (취소 버튼)
         status_widget = QWidget()
         status_layout = QVBoxLayout(status_widget)
         status_layout.setContentsMargins(2, 2, 2, 2)
@@ -880,11 +887,16 @@ class YouTubeDownloader(QMainWindow):
         default_pixmap.fill(Qt.GlobalColor.lightGray)
         label.setPixmap(default_pixmap)
 
-    def set_progress_bar_color(self, progress_bar, is_video):
-        if is_video:
-            color = "#2196F3"  # Green color matching the buttons
+    def set_progress_bar_color(self, progress_bar, is_merged_format, is_video):
+        if is_merged_format:
+            color = "#4CAF50"  # Green color for merged format
+            print("Setting progress bar color to Green (Merged Format)")
+        elif is_video:
+            color = "#2196F3"  # Blue color for video download
+            print("Setting progress bar color to Blue (Video Download)")
         else:
-            color = "#4CAF50"  # Blue color with similar tone to the green
+            color = "#4CAF50"  # Green color for audio download
+            print("Setting progress bar color to Green (Audio Download)")
         
         progress_bar.setStyleSheet(f"""
             QProgressBar {{
@@ -900,14 +912,15 @@ class YouTubeDownloader(QMainWindow):
         """)
         progress_bar.repaint()
 
-    def update_download_progress(self, row, progress, time_left, is_video):
+    def update_download_progress(self, row, progress, time_left, is_merged_format, is_video):
         try:
             progress_widget = self.download_list.cellWidget(row, 4)
             if progress_widget:
                 progress_bar = progress_widget.findChild(QProgressBar)
                 if progress_bar:
                     progress_bar.setValue(int(progress))
-                    self.set_progress_bar_color(progress_bar, is_video)
+                    self.set_progress_bar_color(progress_bar, is_merged_format, is_video)
+                    print(f"Updated progress bar. Value: {int(progress)}, Is Merged Format: {is_merged_format}, Is Video: {is_video}")
             
             time_item = self.download_list.item(row, 5)
             if time_item:
@@ -1118,6 +1131,10 @@ class YouTubeDownloader(QMainWindow):
     def open_video_url(self):
         if hasattr(self, 'video_url') and self.video_url:
             QDesktopServices.openUrl(QUrl(self.video_url))
+
+    def check_if_merged_format(self, format):
+        return 'acodec' in format and format['acodec'] != 'none' and \
+               'vcodec' in format and format['vcodec'] != 'none'
 
 class ClickableLabel(QLabel):
     clicked = pyqtSignal()
