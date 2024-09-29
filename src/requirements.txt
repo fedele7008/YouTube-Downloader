@@ -1,7 +1,0 @@
-altgraph==0.17.4
-macholib==1.16.3
-packaging==23.2
-pyinstaller==5.13.2
-pyinstaller-hooks-contrib==2023.10
-https://github.com/pytube/pytube/archive/2ff84938cddd02a78053204517389374f5be7019.tar.gz
-setuptools==68.0.0
