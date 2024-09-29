@@ -55,16 +55,16 @@ class DownloadWorker(QRunnable):
         self.is_cancelled = False
 
     def run(self):
-        # 파일 이름 생성 (공백을 언더스코어로 대체하고 확장자 추가)
         safe_title = self.video_title.replace(' ', '_')
         file_name = f"{safe_title}.%(ext)s"
         full_path = os.path.join(self.output_path, file_name)
-
+        ext = self.format.get('ext', 'mp4')
+        print(ext)
         ydl_opts = {
-            'format': self.format+'+bestaudio/best',
+            'format': self.format.get('format_id', 'bestvideo')+'+bestaudio/best',
             'outtmpl': full_path,
             'progress_hooks': [self.progress_hook],
-            'merge_output_format': 'mp4',
+            'merge_output_format': ext
         }
 
         try:
@@ -623,7 +623,7 @@ class YouTubeDownloader(QMainWindow):
         
         self.add_download_item(row, format)
         
-        worker = DownloadWorker(row, self.url_input.text(), format['format_id'], 
+        worker = DownloadWorker(row, self.url_input.text(), format, 
                                 self.dest_input.text(), self.video_title)
         worker.signals.progress.connect(self.update_download_progress)
         worker.signals.finished.connect(self.download_finished)
