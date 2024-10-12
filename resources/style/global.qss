@@ -1,0 +1,81 @@
+QLabel[class="input-label"] {
+    qproperty-alignment: "AlignRight | AlignVCenter";
+    padding: 3px;
+    padding-right: 0px;
+    min-width: 90px;
+}
+
+QLabel[class="error-label"] {
+    color: red;
+}
+
+QMessageBox[class="error-dialog"] QPushButton {
+    padding: 5px 15px;
+}
+
+QMessageBox[class="error-dialog"] #qt_msgbox_label {
+    /* None */
+}
+
+QMessageBox[class="error-dialog"] #qt_msgbox_informativelabel {
+    /* None */
+}
+
+QLineEdit {
+    padding: 2px;
+}
+
+#search-button {
+    padding-left: 30px;
+    padding-right: 30px;
+}
+
+QPushButton {
+    padding: 5px;
+}
+
+QTabWidget::pane {
+    /* None */
+}
+
+QTabBar::tab {
+    padding: 6px 12px;
+}
+
+QTabBar::tab:selected {
+    /* None */
+}
+
+#loading-widget {
+    qproperty-alignment: "AlignHCenter | AlignBottom";
+}
+
+#loading-label {
+    qproperty-alignment: "AlignHCenter | AlignTop";
+}
+
+QTableWidget {
+    margin-top: 0px;
+}
+
+QTableWidget::item {
+    /* None */
+}
+
+QHeaderView {
+    /* None */
+}
+
+QTableCornerButton::section {
+    /* None */
+}
+
+QHeaderView::section {
+    /* None */
+}
+
+/*
+* {
+    border: 2px solid black;
+}
+*/
