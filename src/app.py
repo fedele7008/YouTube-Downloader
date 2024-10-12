@@ -1,12 +1,13 @@
-import sys, os, json, configparser
+import sys, os, json, configparser, subprocess
 
 from enum import Enum
 from pathlib import Path
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
                              QLabel, QLineEdit, QPushButton, QSizePolicy, QFileDialog, QMessageBox, 
-                             QStackedLayout, QTabWidget, QTableWidget, QHeaderView, QTableWidgetItem)
-from PyQt6.QtCore import QSize, Qt
-from PyQt6.QtGui import QFontDatabase, QMovie
+                             QStackedLayout, QTabWidget, QTableWidget, QHeaderView, QTableWidgetItem,
+                             QFrame)
+from PyQt6.QtCore import QSize, Qt, pyqtSignal, QUrl
+from PyQt6.QtGui import QFontDatabase, QMovie, QDesktopServices, QPixmap, QImage
 
 
 def get_resource_path():
@@ -19,6 +20,16 @@ def get_resource_path():
 def get_default_download_dir_path():
     return str(os.path.join(Path.home(), "Downloads"))
 
+
+def format_size(size_bytes):
+    if size_bytes < 1024:
+        return f"{size_bytes} B"
+    elif size_bytes < 1024*1024:
+        return f"{size_bytes/1024:.2f} KB"
+    elif size_bytes < 1024*1024*1024:
+        return f"{size_bytes/(1024*1024):.2f} MB"
+    else:
+        return f"{size_bytes/(1024*1024*1024):.2f} GB"
 
 class Locale(Enum):
     ko_KR = 1
@@ -132,6 +143,14 @@ class UrlInput(QLineEdit):
         self.selectAll()
 
 
+class ClickableLabel(QLabel):
+    clicked = pyqtSignal()
+    
+    def mousePressEvent(self, event):
+        self.clicked.emit()
+        super().mousePressEvent(event)
+    
+
 class YouTubeDownloader(QMainWindow):
     fonts_registered = False
     min_font_size = 8
@@ -218,9 +237,20 @@ class YouTubeDownloader(QMainWindow):
             except ValueError:
                 print(f"Invalid font size-value '{config.get('settings', 'font-size')}'. Use default config['settings']['font-size']: '{self.config['settings']['font-size']}'", file=sys.stderr)
 
+    def load_ffmpeg(self):
+        dependency_path = os.path.join(get_resource_path(),
+                                       "dependencies",
+                                       "macos" if sys.platform == "darwin" else "windows")
+        self.ffmpeg_path = os.path.join(dependency_path, "ffmpeg" if sys.platform == "darwin" else "ffmpeg.exe")
+        
+        # Test if ffmpeg is available
+        if not os.path.isfile(self.ffmpeg_path):
+            raise ImportError(f"ffmpeg not found at '{self.ffmpeg_path}'. Please make sure to install FFmpeg before running the application.")
+        
     def parse_args(self, kwargs):
         if not hasattr(self, "config"):
             self.load_config()
+            self.load_ffmpeg()
         
         for key, value in kwargs.items():
             match key:
@@ -302,6 +332,20 @@ class YouTubeDownloader(QMainWindow):
             raise FileNotFoundError(f"Asset file '{asset_file_name}' not found")
         
         return asset_path
+    
+    def open_video_url(self):
+        # [DEBUG-START]
+        self.video_url = "https://www.youtube.com/"
+        # [DEBUG-END]
+        if hasattr(self, "video_url") and self.video_url:
+            QDesktopServices.openUrl(QUrl(self.video_url))
+            
+    def open_channel_url(self):
+        # [DEBUG-START]
+        self.channel_url = "https://www.youtube.com/"
+        # [DEBUG-END]
+        if hasattr(self, "channel_url") and self.channel_url:
+            QDesktopServices.openUrl(QUrl(self.channel_url))
         
     def init_ui(self):
         # Configure main widget
@@ -348,13 +392,14 @@ class YouTubeDownloader(QMainWindow):
         
         # Configure video layout
         self.video_widget = QWidget()
+        self.video_widget.setMaximumHeight(600)
         self.video_layout = QStackedLayout(self.video_widget)
         self.video_content_widget = QWidget()
         self.video_content_widget.setProperty("class", "video-content")
         self.video_loading_widget = QWidget()
         self.video_loading_widget.setProperty("class", "video-content")
         self.video_content_layout = QVBoxLayout(self.video_content_widget)
-        self.video_content_layout.setSpacing(6)
+        self.video_content_layout.setSpacing(10)
         self.video_loading_layout = QVBoxLayout(self.video_loading_widget)
         self.video_loading_layout.setSpacing(20)
         
@@ -376,8 +421,60 @@ class YouTubeDownloader(QMainWindow):
         
         # Configure video content widget
         self.video_info_widget = QWidget()
+        self.video_info_widget.setMaximumHeight(120)
         self.video_info_layout = QHBoxLayout(self.video_info_widget)
+        self.video_info_layout.setContentsMargins(0,0,0,0)
         
+        # Configure video thumbnail widget
+        self.thumbnail_widget = ClickableLabel()
+        self.thumbnail_widget.setMaximumHeight(self.video_info_widget.maximumHeight())
+        self.thumbnail_widget.setAlignment(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft)
+        self.thumbnail_widget.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.thumbnail_widget.clicked.connect(self.open_video_url)
+        self.thumbnail_widget.setProperty("class", "thumbnail-widget")
+
+        # [DEBUG-START]
+        image = QImage(self.get_asset("sample.png"))
+        default_pixmap = QPixmap.fromImage(image).scaledToHeight(self.thumbnail_widget.height())
+        self.thumbnail_widget.setPixmap(default_pixmap)
+        # [DEBUG-END]
+        
+        # Configure video info
+        self.video_info_text_widget = QWidget()
+        self.video_info_text_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+        self.video_info_text_layout = QVBoxLayout(self.video_info_text_widget)
+        self.video_info_text_layout.setContentsMargins(0,0,0,0)
+        self.video_info_text_layout.setSpacing(4)
+        
+        self.video_info_text_title = ClickableLabel()
+        self.video_info_text_title.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
+        self.video_info_text_title.clicked.connect(self.open_video_url)
+        self.video_info_text_title.setCursor(Qt.CursorShape.PointingHandCursor)
+        
+        self.video_info_text_channel = ClickableLabel()
+        self.video_info_text_channel.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
+        self.video_info_text_channel.clicked.connect(self.open_channel_url)
+        self.video_info_text_channel.setCursor(Qt.CursorShape.PointingHandCursor)
+        
+        self.video_info_text_stretch = QWidget()
+        self.video_info_text_stretch.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+
+        self.video_info_text_length = QLabel()
+
+        # [DEBUG-START]
+        self.video_info_text_title.setText("Test Video Title")
+        self.video_info_text_channel.setText("Test Channel")
+        self.video_info_text_length.setText("Test Duration")
+        # [DEBUG-END]
+        
+        self.video_info_text_layout.addWidget(self.video_info_text_title)
+        self.video_info_text_layout.addWidget(self.video_info_text_channel)
+        self.video_info_text_layout.addWidget(self.video_info_text_stretch)
+        self.video_info_text_layout.addWidget(self.video_info_text_length)
+
+        self.video_info_layout.addWidget(self.thumbnail_widget)
+        self.video_info_layout.addWidget(self.video_info_text_widget)
+
         self.download_tab_widget = QTabWidget()
         self.video_download_tab = QWidget()
         self.video_download_tab_layout = QVBoxLayout(self.video_download_tab)
@@ -390,7 +487,11 @@ class YouTubeDownloader(QMainWindow):
         self.video_table_widget = QTableWidget()
         self.video_table_widget.setColumnCount(4)
         self.video_table_widget.setHorizontalHeaderLabels(self.component_text["video-download-table-header"])
-        self.video_table_widget.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        header = self.video_table_widget.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(3, QHeaderView.ResizeMode.Fixed)
         self.video_table_widget.horizontalHeader().setSectionsClickable(False)
         self.video_table_widget.setAutoScroll(False)
         self.video_table_widget.setSelectionMode(QTableWidget.SelectionMode.NoSelection)
@@ -402,26 +503,84 @@ class YouTubeDownloader(QMainWindow):
         self.video_table_widget.setShowGrid(False)
         self.video_table_widget.setCornerButtonEnabled(False)
 
-        # Add dummy rows for the table -- start
+        # [DEBUG-START] Add dummy rows for the table -- start 
         self.video_table_widget.setRowCount(10)
         for row in range(self.video_table_widget.rowCount()):
             for col in range(self.video_table_widget.columnCount()):
                 item = QTableWidgetItem(f"Row {row+1}, Column {col+1} content")
                 self.video_table_widget.setItem(row, col, item)
-        # Add dummy rows for the table -- end        
+        # [DEBUG-END] Add dummy rows for the table -- end 
 
         self.video_download_tab_layout.addWidget(self.video_table_widget)
         
+        # Configure video download tab
+        self.audio_table_widget = QTableWidget()
+        self.audio_table_widget.setColumnCount(4)
+        self.audio_table_widget.setHorizontalHeaderLabels(self.component_text["video-download-table-header"])
+        header = self.audio_table_widget.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(3, QHeaderView.ResizeMode.Fixed)
+        self.audio_table_widget.horizontalHeader().setSectionsClickable(False)
+        self.audio_table_widget.setAutoScroll(False)
+        self.audio_table_widget.setSelectionMode(QTableWidget.SelectionMode.NoSelection)
+        self.audio_table_widget.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.audio_table_widget.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.audio_table_widget.verticalHeader().setSectionsClickable(False)
+        self.audio_table_widget.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Fixed)
+        self.audio_table_widget.verticalHeader().setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.audio_table_widget.setShowGrid(False)
+        self.audio_table_widget.setCornerButtonEnabled(False)   
+
+        self.audio_download_tab_layout.addWidget(self.audio_table_widget)
+        
         # Continuation of video content configuration...
         self.video_content_layout.addWidget(self.video_info_widget)
+        self.video_content_line_separator = QWidget()
+        self.video_content_line_separator.setProperty("class", "hline")
+        self.video_content_line_separator.setFixedHeight(2)
+        self.video_content_line_separator.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        self.video_content_layout.addWidget(self.video_content_line_separator)
         self.video_content_layout.addWidget(self.download_tab_widget)
 
         self.video_layout.addWidget(self.video_content_widget)
         self.video_layout.addWidget(self.video_loading_widget)
         self.video_layout.setCurrentWidget(self.video_content_widget)
-        
+
         self.main_layout.addWidget(self.video_widget)
         
+        # Configure 
+        self.download_status_table = QTableWidget()
+        self.download_status_table.setColumnCount(7)
+        self.download_status_table.setHorizontalHeaderLabels(self.component_text["video-download-status-table-header"])
+        self.download_status_table.horizontalHeader().setSectionsClickable(False)
+        self.download_status_table.setAutoScroll(False)
+        self.download_status_table.setSelectionMode(QTableWidget.SelectionMode.NoSelection)
+        self.download_status_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.download_status_table.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.download_status_table.verticalHeader().setSectionsClickable(False)
+        self.download_status_table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Fixed)
+        self.download_status_table.verticalHeader().setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.download_status_table.setShowGrid(False)
+        self.download_status_table.setCornerButtonEnabled(False)
+        header = self.download_status_table.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Fixed)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(4, QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(5, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(6, QHeaderView.ResizeMode.Fixed)
+        self.main_layout.addWidget(self.download_status_table)
+        
+        # [DEBUG-START] Add dummy rows for the table -- start 
+        self.download_status_table.setRowCount(10)
+        for row in range(self.download_status_table.rowCount()):
+            for col in range(self.download_status_table.columnCount()):
+                item = QTableWidgetItem(f"Row {row+1}, Column {col+1} content")
+                self.download_status_table.setItem(row, col, item)
+        # [DEBUG-END] Add dummy rows for the table -- end 
         
     def handle_dest_input_changed(self):
         enable_search_button = True
@@ -477,6 +636,6 @@ class YouTubeDownloader(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = YouTubeDownloader()
+    window = YouTubeDownloader(locale=Locale.en_US, theme=Theme.light)
     window.show()
     sys.exit(app.exec())

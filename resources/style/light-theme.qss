@@ -74,7 +74,7 @@ QTabBar::tab:pressed {
 }
 
 QTabBar::tab:selected {
-    background-color: #4E8DF5;
+    background-color: #5FACED;
 }
 
 QTableWidget {
@@ -99,19 +99,25 @@ QHeaderView {
 }
 
 QTableCornerButton::section {
-    background-color: #4E8DF5;
+    background-color: #96C7F0;
     border: 1px solid #CCCCCC;
-    border-right: 1px solid #4E8DF5;
+    border-right: 1px solid #96C7F0;
     border-top-left-radius: 6px;
 }
 
 QHeaderView::section:horizontal {
-    background-color: #4E8DF5;
+    background-color: #96C7F0;
     border: 1px solid #CCCCCC;
-    border-left: 1px solid #4E8DF5;
-    border-right: 1px solid #4E8DF5;
 }
 
 QHeaderView::section:horizontal:last {
     border-top-right-radius: 6px;
+}
+
+QHeaderView::section:horizontal:first {
+    border-left: 2px solid #96C7F0;
+}
+
+QWidget[class="hline"] {
+    background-color: #DDDDDD;
 }
