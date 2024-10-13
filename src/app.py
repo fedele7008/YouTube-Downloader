@@ -1,3 +1,9 @@
+# To distribute application (MacOS):
+# 1. activate virtual environment
+# 2. install PyQt6 and other required libraries
+# 3. run pyi-makespec --onefile --windowed src/app.py --add-data resources/assets:assets --add-data resources/config:config --add-data resources/fonts:fonts --add-data resources/style:style --icon resources/icon/YoutubeDownloader.icns --add-binary resources/dependencies/macos:dependencies/macos
+# 4. run pyinstaller app.spec
+
 import sys, os, json, configparser, subprocess
 
 from enum import Enum
