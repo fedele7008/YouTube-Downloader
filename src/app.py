@@ -247,6 +247,14 @@ class YouTubeDownloader(QMainWindow):
         if not os.path.isfile(self.ffmpeg_path):
             raise ImportError(f"ffmpeg not found at '{self.ffmpeg_path}'. Please make sure to install FFmpeg before running the application.")
         
+        # Check version of ffmpeg
+        try:
+            ffmpeg_version_output = subprocess.check_output([self.ffmpeg_path, "-version"], stderr=subprocess.STDOUT)
+            ffmpeg_version = ffmpeg_version_output.decode().split("\n")[0].split(" ")[2]
+            print(f"FFmpeg version: {ffmpeg_version}")
+        except subprocess.CalledProcessError as e:
+            print(f"Failed to get FFmpeg version: {e.output.decode()}", file=sys.stderr)
+        
     def parse_args(self, kwargs):
         if not hasattr(self, "config"):
             self.load_config()
