@@ -3,3 +3,8 @@
 **/*venv*
 **/*.spec
 **/.DS_Store
+resources/fonts/*
+!resources/fonts/.gitkeep
+**/*install_dependency_tmp_*
+external/
+**/*__pycache__
