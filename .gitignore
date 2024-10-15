@@ -8,3 +8,4 @@ resources/fonts/*
 **/*install_dependency_tmp_*
 external/
 **/*__pycache__
+**/*.ref.py
