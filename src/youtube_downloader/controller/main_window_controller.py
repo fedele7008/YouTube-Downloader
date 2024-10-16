@@ -27,7 +27,6 @@ class MainWindowController():
     @Slot()
     @block_signal(lambda self: self.view)
     def on_app_name_changed(self, name):
-        print("INVOKED on_app_name_changed: ", name)
         self.view.setWindowTitle(name)
         
     def refresh_ui(self):
