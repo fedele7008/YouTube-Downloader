@@ -9,4 +9,12 @@ Copyright (c) 2024 John Yoon. All rights reserved.
 Licensed under the MIT License. See LICENSE file in the project root for more information.
 """
 
+import sys
 
+from PySide6.QtWidgets import QApplication
+from youtube_downloader.app import App
+
+if __name__ == "__main__":
+    app = QApplication()
+    youtube_downloader = App()
+    sys.exit(app.exec())

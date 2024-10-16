@@ -1,11 +1,11 @@
 **/build*
 **/dist*
 **/*venv*
-**/*.spec
 **/.DS_Store
-resources/fonts/*
-!resources/fonts/.gitkeep
+src/youtube_downloader/resources/fonts/**/*
+!src/youtube_downloader/resources/fonts/.gitkeep
 **/*install_dependency_tmp_*
-external/
+src/youtube_downloader/external/**/*
+!src/youtube_downloader/external/README.md
 **/*__pycache__
 **/*.ref.py

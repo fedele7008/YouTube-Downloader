@@ -1,14 +1,21 @@
 """
+Author: John Yoon
+Email: fedelejohn7008@gmail.com
+Version: 2.1.0
+
 Install necessary dependencies for the project.
 
 Install list:
 - FFmpeg
 - Fonts
 
-Supported OS: MacOS, Windows(Not supported yet, but is planned)
+Supported OS: MacOS, Windows
 
 Run this script in virtual environment that installed all necessary python 
     packages in requirements.txt.
+    
+Copyright (c) 2024 John Yoon. All rights reserved.
+Licensed under the MIT License. See LICENSE file in the project root for more information.
 """
 
 import os, subprocess, zipfile, uuid, shutil, gdown
@@ -20,11 +27,11 @@ current_os: str = os.uname().sysname
 project_root: str = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 
 ffmpeg_output: str = "ffmpeg.zip"
-ffmpeg_executable: str = "ffmpeg"
+ffmpeg_executable: str | None = None
 ffmpeg_download_id: str | None = None
 
 font_dir_download_id: str = "1UqKze7zTopihuWZsVyliUleJrbiRtKzU"
-font_dir_destination: str = os.path.join(project_root, "resources", "fonts")
+font_dir_destination: str = os.path.join(project_root, "src", "youtube_downloader", "resources", "fonts")
 
 tmp_dir: str = os.path.join(project_root, f"install_dependency_tmp_{uuid.uuid4()}")
 
@@ -33,20 +40,17 @@ match current_os:
     case "Darwin":
         print("Detected MacOS environment")
         ffmpeg_download_id = "1QVBsLc-eijb8L2vfZ3Fmiez_5Xxj-Zsn"
+        ffmpeg_executable = "ffmpeg"
     case "Windows":
-        print("Detected Windows environment (Not supported yet)")
-        exit(1)
+        print("Detected Windows environment")
+        ffmpeg_download_id = "18YPUYEQVeZd0ZMFXaHNUyGME1idiPtfc"
+        ffmpeg_executable = "ffmpeg.exe"
     case _:
         print("Unsupported operating system")
         exit(1)
 
-# Assert ffmpeg_download_id is not None
-if ffmpeg_download_id is None:
-    print("FFmpeg download ID is not set")
-    exit(1)
-
 # Check if ffmpeg is already installed ({project_root}/external/ffmpeg/bin/)
-ffmpeg_dir: str = os.path.join(project_root, "external", "ffmpeg", "bin")
+ffmpeg_dir: str = os.path.join(project_root, "src", "youtube_downloader", "external", "ffmpeg", "bin")
 if not os.path.isfile(os.path.join(ffmpeg_dir, ffmpeg_executable)):
     print(f"FFmpeg not found at {ffmpeg_dir}, downloading...")
 
@@ -94,7 +98,7 @@ if result.returncode != 0:
 
             print(f"FFmpeg installed version: {result.stdout}")
         case "Windows":
-            print("Windows is not supported yet")
+            print("Unexpected error: FFmpeg is not working on Windows")
             exit(1)
         case _:
             print("Unsupported operating system")
