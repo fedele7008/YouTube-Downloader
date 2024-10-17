@@ -15,11 +15,11 @@ class ABCEnumMeta(EnumMeta, ABCMeta):
 
 class BaseEnum(Enum, metaclass=ABCEnumMeta):
     @classmethod
-    def validate_str(cls, str_value):
+    def validate_str(cls, str_value: str):
         return str_value in cls.__members__
 
     @classmethod
-    def parse_str(cls, str_value):
+    def parse_str(cls, str_value: str):
         if not cls.validate_str(str_value):
             raise ValueError(f"{str_value} is not a valid {cls.__name__}")
         return cls[str_value]

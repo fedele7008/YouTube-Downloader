@@ -20,8 +20,9 @@ def get_package_root() -> str:
     if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
         return sys._MEIPASS
     else:
-        with importlib.resources.path("youtube_downloader", "__init__.py") as path:
-            return os.path.dirname(path)
+        package_path = importlib.resources.files("youtube_downloader")
+        init_file = os.path.join(str(package_path), "__init__.py")
+        return os.path.dirname(str(init_file))
 
 
 def get_external_path() -> str:

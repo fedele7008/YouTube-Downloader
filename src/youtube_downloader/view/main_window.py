@@ -10,11 +10,13 @@ Licensed under the MIT License. See LICENSE file in the project root for more in
 from typing import Any
 
 from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout
+from youtube_downloader.util.gui import center_widget_on_screen
 
 class MainWindow(QMainWindow):
     def __init__(self, **kwargs: Any):
         super().__init__()
-        self.setGeometry(100, 100, 900, 600)
+        self.setGeometry(0, 0, 900, 600)
+        center_widget_on_screen(self)
         self.init_ui()
         
     def init_ui(self):

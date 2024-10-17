@@ -22,6 +22,9 @@ def byte_to_display(byte_size: int) -> str:
              The returned string includes the value (rounded to two decimal places
              for KB, MB, and GB) and the appropriate unit (B, KB, MB, or GB).
 
+    Raises:
+        ValueError: If the input byte_size is negative.
+
     Examples:
     ```
         >>> byte_to_display(500)
@@ -34,6 +37,9 @@ def byte_to_display(byte_size: int) -> str:
         '1.40 GB'
     ```
     """
+    if byte_size < 0:
+        raise ValueError("Byte size cannot be negative")
+    
     if byte_size < 1024:
         return f"{byte_size} B"
     elif byte_size < 1024**2:

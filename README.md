@@ -18,6 +18,9 @@ this issue, run `hash -r` or deactivate and re-activate the venv once. For more 
 ## NOTES:
 * In some cases, especially on Unix-like systems, if you install a package that provides a command-line tool (like `pyinstaller`), your shell might not recognize the new command immediately. This is because the shell's hash table of commands isn't updated until a new shell session starts. You can refresh this without deactivating your venv by running: `hash -r`
 
+# How to run tests
+1. Once you followed the steps above to set up the development environment (upto running `pip install -e .`), you can run test via `pytest` command from project root.
+
 ## TODOS:
 [] resource manager
 [] config loader
