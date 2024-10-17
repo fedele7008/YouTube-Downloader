@@ -1,0 +1,2 @@
+recursive-include src/youtube-downloader/resources *
+recursive-include src/youtube-downloader/external *
