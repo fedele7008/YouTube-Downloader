@@ -7,7 +7,7 @@ Copyright (c) 2024 John Yoon. All rights reserved.
 Licensed under the MIT License. See LICENSE file in the project root for more information.
 """
 
-import sys, os, pathlib, importlib.resources
+import sys, os, pathlib, importlib.resources, platform
 
 def get_package_root() -> str:
     """
@@ -122,3 +122,31 @@ def recursive_find(dir: str, ext: str) -> list[str]:
             if file.endswith(f".{ext}"):
                 result.append(os.path.join(root, file))
     return result
+
+def get_appdata_path() -> str:
+    """
+    Retrieve the path to the application data directory based on the operating system.
+
+    On macOS, it returns the path within the "Library/Application Support" directory.
+    On Windows, it uses the APPDATA environment variable to determine the path.
+    If the operating system is unsupported, a NotImplementedError is raised.
+
+    Returns:
+        str: The absolute path to the application data directory.
+
+    Raises:
+        EnvironmentError: If the APPDATA environment variable is not set on Windows.
+        NotImplementedError: If the operating system is not supported.
+    """
+    current_os: str = platform.system()
+    appdata_dir: str = "youtube_downloader"
+    match current_os:
+        case "Darwin": # MacOS
+            appdata_root = os.path.join(pathlib.Path.home(), "Library", "Application Support")
+        case "Windows": # Windows
+            appdata_root = os.getenv("APPDATA")
+            if appdata_root is None:
+                raise EnvironmentError("Failed to get the application data directory. APPDATA environment variable is not set.")
+        case _: # Unsupported OS
+            raise NotImplementedError(f"Unsupported operating system: {current_os}")
+    return os.path.join(appdata_root, appdata_dir)

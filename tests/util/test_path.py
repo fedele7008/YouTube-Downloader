@@ -7,7 +7,8 @@ Copyright (c) 2024 John Yoon. All rights reserved.
 Licensed under the MIT License. See LICENSE file in the project root for more information.
 """
 
-import pytest, os
+import pytest, os, platform
+from unittest.mock import patch
 
 from youtube_downloader.util import path
 
@@ -134,3 +135,34 @@ def test_recursive_find_complex(tmp_path):
     assert str(dir3 / "file5.py") in sub_py_files
     assert str(dir4 / "file7.py") in sub_py_files
 
+def test_get_appdata_path_macos():
+    running_os = platform.system()
+    with patch("platform.system") as mock_system:
+        mock_system.return_value = "Darwin"
+        appdata_path = path.get_appdata_path()
+        if running_os == "Windows": # If running on Windows, replace "\\" with "/"
+            appdata_path = appdata_path.replace("\\", "/")
+        assert appdata_path.endswith("Library/Application Support/youtube_downloader")
+
+def test_get_appdata_path_windows():
+    running_os = platform.system()
+    with patch("platform.system") as mock_system, patch("os.getenv") as mock_getenv:
+        mock_system.return_value = "Windows"
+        mock_getenv.return_value = "C:\\Users\\User\\AppData\\Roaming"
+        appdata_path = path.get_appdata_path()
+        if running_os == "Darwin": # If running on MacOS, replace "/" with "\\"
+            appdata_path = appdata_path.replace("/", "\\")
+        assert appdata_path == "C:\\Users\\User\\AppData\\Roaming\\youtube_downloader"
+
+def test_get_appdata_path_windows_no_env():
+    with patch("platform.system") as mock_system, patch("os.getenv") as mock_getenv:
+        mock_system.return_value = "Windows"
+        mock_getenv.return_value = None
+        with pytest.raises(EnvironmentError):
+            path.get_appdata_path()
+
+def test_get_appdata_path_unsupported_os():
+    with patch("platform.system") as mock_system:
+        mock_system.return_value = "UnsupportedOS"
+        with pytest.raises(NotImplementedError):
+            path.get_appdata_path()
