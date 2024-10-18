@@ -19,6 +19,10 @@ class BinaryLoader():
     and provides methods to load and validate the ffmpeg executable based 
     on the current platform. It supports macOS and Windows platforms.
 
+    Use singleton pattern to ensure that only one instance of the ffmpeg loader exists.
+    This will prevent unnecessary reloading of the ffmpeg binary which costs significant
+    amount of time.
+
     Attributes:
         ffmpeg_version (str): The version of the loaded ffmpeg binary.
         ffmpeg_exe (str): The path to the loaded ffmpeg executable.
@@ -49,8 +53,13 @@ class BinaryLoader():
     def __init__(self):
         """
         Initializes the BinaryLoader instance and reloads the ffmpeg binary.
+
+        Raises:
+            RuntimeError: If the ffmpeg binary fails to load and validate.
         """
-        self.reload_ffmpeg()
+        result = self.reload_ffmpeg()
+        if not result:
+            raise RuntimeError("Failed to load and validate ffmpeg binary.")
 
     def reload_ffmpeg(self) -> bool:
         """
