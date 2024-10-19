@@ -9,7 +9,7 @@ Licensed under the MIT License. See LICENSE file in the project root for more in
 
 from PySide6.QtCore import QObject, Property, Signal, Slot
 
-class YouTubeDownloaderApp(QObject):
+class YouTubeDownloaderModel(QObject):
     app_name_changed = Signal(str)
     
     def __init__(self):

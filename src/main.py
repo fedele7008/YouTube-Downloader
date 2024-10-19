@@ -11,10 +11,8 @@ Licensed under the MIT License. See LICENSE file in the project root for more in
 
 import sys
 
-from PySide6.QtWidgets import QApplication
-from youtube_downloader.app import App
+from youtube_downloader.app import YouTubeDownloader
 
 if __name__ == "__main__":
-    app = QApplication()
-    youtube_downloader = App()
-    sys.exit(app.exec())
+    app = YouTubeDownloader()
+    sys.exit(app.get_application().exec())

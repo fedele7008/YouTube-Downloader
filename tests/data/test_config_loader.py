@@ -9,7 +9,9 @@ Licensed under the MIT License. See LICENSE file in the project root for more in
 
 import pytest, os, json
 
-from unittest.mock import patch, MagicMock
+from PySide6.QtWidgets import QApplication
+
+from unittest.mock import patch
 from youtube_downloader.data.loaders.config_loader import ConfigLoader
 import youtube_downloader
 
@@ -25,6 +27,9 @@ def mock_config_path(tmp_path):
 
 @pytest.fixture
 def config_loader(mock_config_path):
+    if QApplication.instance() is None:
+        app = QApplication([])
+
     with patch('youtube_downloader.data.loaders.config_loader.get_config_path', return_value=str(mock_config_path)):
         loader = ConfigLoader()
         yield loader
@@ -82,7 +87,7 @@ def test_get_config(config_loader):
     with open(config_loader.config_path, 'w') as f:
         json.dump(test_config, f)
     
-    with patch('youtube_downloader.data.loaders.config_loader.DEFAULT_CONFIG', {"settings": {"default": "config"}}):
+    with patch.object(config_loader, 'DEFAULT_CONFIG', {"settings": {"default": "config"}}):
         assert config_loader.get_config() == {"default": "config"}
 
 if __name__ == "__main__":

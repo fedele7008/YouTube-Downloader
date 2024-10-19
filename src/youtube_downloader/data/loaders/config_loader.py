@@ -42,21 +42,6 @@ Note that settings schema may change by the application version, hence there
 may be a migration process required when the application version is updated.
 """
 
-DEFAULT_CONFIG = {
-    "version": f"{youtube_downloader.__version__}",
-    "settings": {
-        "locale": Locale.get_default().to_str(),
-        "theme": "system_light",
-        "debug_mode": False,
-        "debug_level": "DEBUG",
-        "font": get_default_system_font(),
-        "font_size": 12,
-        "standard_download_path": get_system_download_path(),
-        "last_download_path": get_system_download_path(),
-        "load_last_download_path": True,
-    }
-}
-
 class ConfigLoader():
     """
     A class for loading and managing application configuration.
@@ -82,6 +67,20 @@ class ConfigLoader():
         self.config_path = os.path.join(get_config_path(), self.config_file)
         if not os.path.exists(get_config_path()):
             os.makedirs(get_config_path())
+        self.DEFAULT_CONFIG = {
+            "version": f"{youtube_downloader.__version__}",
+            "settings": {
+                "locale": Locale.get_default().to_str(),
+                "theme": "system_light",
+                "debug_mode": False,
+                "debug_level": "DEBUG",
+                "font": get_default_system_font(),
+                "font_size": 12,
+                "standard_download_path": get_system_download_path(),
+                "last_download_path": get_system_download_path(),
+                "load_last_download_path": True,
+            }
+        }
         self.logger.debug(f"Config loader initialized with config path: {self.config_path}")
         
     def check_config(self) -> bool:
@@ -111,8 +110,8 @@ class ConfigLoader():
                 return
             
         with open(self.config_path, "w") as f:
-            json.dump(DEFAULT_CONFIG, f, indent=4)
-        self.logger.info(f"Created default config file: {self.config_path}")
+            json.dump(self.DEFAULT_CONFIG, f, indent=4)
+        self.logger.debug(f"Created default config file: {self.config_path}")
 
     def get_config(self) -> dict:
         """
@@ -138,6 +137,6 @@ class ConfigLoader():
 
         if data["version"] != youtube_downloader.__version__:
             self.logger.warning(f"Config file version mismatch: config version is {data['version']} where current version is {youtube_downloader.__version__}. Getting default config.")
-            return DEFAULT_CONFIG["settings"]
+            return self.DEFAULT_CONFIG["settings"]
         
         return data["settings"]

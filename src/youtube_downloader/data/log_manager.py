@@ -9,6 +9,7 @@ Licensed under the MIT License. See LICENSE file in the project root for more in
 
 import logging
 
+# TODO: docstring
 class LogManager():
     def __init__(self, name: str, log_level = logging.INFO):
         self.logger = logging.getLogger(name)

@@ -48,7 +48,7 @@ class BinaryLoader():
             BinaryLoader: The singleton instance of the BinaryLoader class.
         """
         if cls._instance is None:
-            cls._instance = super(BinaryLoader, cls).__new__(cls, *args, **kwargs)
+            cls._instance = super(BinaryLoader, cls).__new__(cls)
         return cls._instance
 
     def __init__(self, log_manager: LogManager | None= None):

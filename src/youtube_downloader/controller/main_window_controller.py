@@ -9,14 +9,14 @@ Licensed under the MIT License. See LICENSE file in the project root for more in
 
 from PySide6.QtCore import Slot
 
-from youtube_downloader.model.application import YouTubeDownloaderApp
+from youtube_downloader.model.application import YouTubeDownloaderModel
 from youtube_downloader.view.main_window import MainWindow
 from youtube_downloader.util.decorator import block_signal
 
 class MainWindowController():
-    def __init__(self, view: MainWindow, model: YouTubeDownloaderApp):
+    def __init__(self, view: MainWindow, model: YouTubeDownloaderModel):
         self.view: MainWindow = view
-        self.model: YouTubeDownloaderApp = model
+        self.model: YouTubeDownloaderModel = model
         self.bind_model()
         self.refresh_ui()
     

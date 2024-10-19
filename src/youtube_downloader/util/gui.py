@@ -7,10 +7,8 @@ Copyright (c) 2024 John Yoon. All rights reserved.
 Licensed under the MIT License. See LICENSE file in the project root for more information.
 """
 
-import subprocess, sys, textwrap
-
 from PySide6.QtWidgets import QWidget, QApplication
-from PySide6.QtGui import QScreen, QCursor
+from PySide6.QtGui import QScreen, QCursor, QFontDatabase
 
 def center_widget_on_screen(widget: QWidget):
     """
@@ -33,16 +31,22 @@ def center_widget_on_screen(widget: QWidget):
     widget.move(fg.topLeft())
 
 def get_default_system_font() -> str:
-    code = textwrap.dedent("""
-        import sys
-        from PySide6.QtWidgets import QApplication
-        from PySide6.QtGui import QFontDatabase
-        app = QApplication([])
-        system_font = QFontDatabase.systemFont(QFontDatabase.SystemFont.GeneralFont).family()
-        print(system_font)
-        exit(0)
-    """)
-    # This is a workaround to get the default system font without creating a QApplication instance.
-    result = subprocess.run([sys.executable, '-c', code], capture_output=True, text=True)
-    system_font = result.stdout.strip()
-    return system_font
+    """
+    Retrieves the default system font family.
+
+    This function returns the name of the default system font family used for general text.
+    It requires an active QApplication instance to function properly.
+
+    Returns:
+        str: The name of the default system font family.
+
+    Raises:
+        RuntimeError: If no QApplication instance is found.
+
+    Note:
+        This function should be called after a QApplication instance has been created.
+    """
+    if not QApplication.instance():
+        raise RuntimeError("QApplication instance not found")
+    
+    return QFontDatabase.systemFont(QFontDatabase.SystemFont.GeneralFont).family()
