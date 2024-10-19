@@ -9,7 +9,6 @@ Licensed under the MIT License. See LICENSE file in the project root for more in
 
 from youtube_downloader.data.loaders.binary_loader import BinaryLoader
 
-
 def test_singleton_instance():
     """
     Test that BinaryLoader is a singleton.

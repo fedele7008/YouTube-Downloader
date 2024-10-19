@@ -7,7 +7,7 @@ Copyright (c) 2024 John Yoon. All rights reserved.
 Licensed under the MIT License. See LICENSE file in the project root for more information.
 """
 
-import logging
+import logging, os
 import logging.handlers
 
 from youtube_downloader.data.abstracts.log_handler import LogHandler
@@ -34,6 +34,7 @@ class LogFileHandler(logging.handlers.RotatingFileHandler, LogHandler):
             maxBytes (int, optional): The maximum size of the log file before it gets rotated. Defaults to 10MB.
             backupCount (int, optional): The number of backup files to keep. Defaults to 5.
         """
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
         super().__init__(filename, mode, maxBytes, backupCount)
         self.set_format(DEFAULT_FORMAT)
         self.name = "log_file_handler"

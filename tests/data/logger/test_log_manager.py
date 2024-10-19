@@ -10,7 +10,7 @@ Licensed under the MIT License. See LICENSE file in the project root for more in
 import pytest, logging
 import os
 
-from youtube_downloader.data.log_manager import LogManager
+from youtube_downloader.data.log_manager import LogManager, get_null_logger
 
 @pytest.fixture(scope="function")
 def log_manager():
@@ -102,3 +102,11 @@ def test_get_handlers_filter(log_manager, temp_log_file):
     # Clean up the additional log file
     if os.path.exists(temp_log_file + ".2"):
         os.remove(temp_log_file + ".2")
+
+def test_get_null_logger():
+    null_logger = get_null_logger()
+    null_logger.info("test")
+    assert isinstance(null_logger, logging.Logger)
+    assert null_logger.name == "silent_logger"
+    assert len(null_logger.handlers) == 1
+    assert isinstance(null_logger.handlers[0], logging.NullHandler)

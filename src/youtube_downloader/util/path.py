@@ -150,3 +150,12 @@ def get_appdata_path() -> str:
         case _: # Unsupported OS
             raise NotImplementedError(f"Unsupported operating system: {current_os}")
     return os.path.join(appdata_root, appdata_dir)
+
+def get_log_path() -> str:
+    """
+    Get the path to the log directory.
+
+    Returns:
+        str: The absolute path to the log directory.
+    """
+    return os.path.join(get_appdata_path(), "logs")

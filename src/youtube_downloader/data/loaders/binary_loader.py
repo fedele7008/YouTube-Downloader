@@ -10,6 +10,7 @@ Licensed under the MIT License. See LICENSE file in the project root for more in
 import os, platform, subprocess
 
 import youtube_downloader.util.path as path
+from youtube_downloader.data.log_manager import LogManager, get_null_logger
 
 class BinaryLoader():
     """
@@ -50,16 +51,18 @@ class BinaryLoader():
             cls._instance = super(BinaryLoader, cls).__new__(cls, *args, **kwargs)
         return cls._instance
 
-    def __init__(self):
+    def __init__(self, log_manager: LogManager | None= None):
         """
         Initializes the BinaryLoader instance and reloads the ffmpeg binary.
 
         Raises:
             RuntimeError: If the ffmpeg binary fails to load and validate.
         """
+        self.logger = log_manager.get_logger() if log_manager else get_null_logger()
         result = self.reload_ffmpeg()
         if not result:
             raise RuntimeError("Failed to load and validate ffmpeg binary.")
+        self.logger.info("FFmpeg binary loaded")
 
     def reload_ffmpeg(self) -> bool:
         """
@@ -68,6 +71,7 @@ class BinaryLoader():
         Returns:
             bool: True if the ffmpeg binary is successfully loaded and validated, False otherwise.
         """
+        self.logger.debug(f"{"Reloading" if hasattr(self, "ffmpeg_version") else "Loading"} ffmpeg binary")
         self.load_ffmpeg()
         ffmpeg_version = self.validate_ffmpeg()
         if ffmpeg_version is None:
@@ -84,12 +88,15 @@ class BinaryLoader():
         """
         if not hasattr(self, "ffmpeg_exe"):
             # ffmpeg not loaded yet
+            self.logger.warning("FFmpeg executable not loaded yet")
             return None
         
         result = subprocess.run([self.ffmpeg_exe, "-version"], capture_output=True, text=True)
         if result.returncode != 0:
+            self.logger.error(f"Failed to validate ffmpeg binary: {result.stderr}")
             return None
         ffmpeg_version = result.stdout.split("\n")[0].split(" ")[2]
+        self.logger.debug(f"FFmpeg version: {ffmpeg_version}")
         return ffmpeg_version
 
     def load_ffmpeg(self):
@@ -108,3 +115,4 @@ class BinaryLoader():
                 raise NotImplementedError(f"Unsupported platform: {platform.system()}")
 
         self.ffmpeg_exe = os.path.abspath(os.path.join(path.get_external_path(), "ffmpeg", "bin", ffmpeg_exe_name))
+        self.logger.debug(f"FFmpeg executable path: {self.ffmpeg_exe}")

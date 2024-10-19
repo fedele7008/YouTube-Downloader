@@ -52,3 +52,8 @@ class LogManager():
 
     def get_handlers_filter(self, handler_type):
         return [handler for handler in self.logger.handlers if type(handler) == handler_type]
+
+def get_null_logger():
+    logger = logging.getLogger("silent_logger")
+    logger.addHandler(logging.NullHandler())
+    return logger
