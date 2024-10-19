@@ -110,3 +110,6 @@ def test_get_null_logger():
     assert null_logger.name == "silent_logger"
     assert len(null_logger.handlers) == 1
     assert isinstance(null_logger.handlers[0], logging.NullHandler)
+
+if __name__ == "__main__":
+    pytest.main([__file__])

@@ -35,3 +35,6 @@ def test_byte_to_display_zero():
 def test_byte_to_display_negative():
     with pytest.raises(ValueError):
         converter.byte_to_display(-1)
+
+if __name__ == "__main__":
+    pytest.main([__file__])

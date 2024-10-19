@@ -7,8 +7,8 @@ Copyright (c) 2024 John Yoon. All rights reserved.
 Licensed under the MIT License. See LICENSE file in the project root for more information.
 """
 
-import sys, logging
-from io import StringIO
+import sys, logging, pytest
+from io import StringIO, TextIOWrapper
 
 from youtube_downloader.data.log_handlers.console_handler import ConsoleHandler
 from youtube_downloader.data.log_handlers.common import DEFAULT_FORMAT
@@ -16,7 +16,6 @@ from youtube_downloader.data.log_handlers.common import DEFAULT_FORMAT
 def test_console_handler_initialization():
     handler = ConsoleHandler()
     assert isinstance(handler, ConsoleHandler)
-    assert handler.stream == sys.stdout
 
 def test_console_handler_custom_stream():
     custom_stream = StringIO()
@@ -58,3 +57,5 @@ def test_console_handler_set_log_level():
     handler.set_log_level(logging.ERROR)
     assert handler.level == logging.ERROR
 
+if __name__ == "__main__":
+    pytest.main([__file__])

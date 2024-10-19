@@ -94,3 +94,6 @@ class TestBlockSignalDecorator:
             instance.my_method()
         
         assert "Expected a QObject" in str(exc_info.value)
+
+if __name__ == "__main__":
+    pytest.main([__file__])

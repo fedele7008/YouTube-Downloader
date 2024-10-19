@@ -7,7 +7,7 @@ Copyright (c) 2024 John Yoon. All rights reserved.
 Licensed under the MIT License. See LICENSE file in the project root for more information.
 """
 
-import logging
+import logging, pytest
 
 from youtube_downloader.data.abstracts.log_handler import LogHandler
 
@@ -38,3 +38,5 @@ def test_log_handler_set_log_level():
     handler.set_log_level(logging.WARNING)
     assert handler.level == logging.WARNING
 
+if __name__ == "__main__":
+    pytest.main([__file__])

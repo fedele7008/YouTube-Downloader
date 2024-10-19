@@ -8,7 +8,7 @@ Licensed under the MIT License. See LICENSE file in the project root for more in
 """
 
 import pytest, os, platform
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 from youtube_downloader.util import path
 
@@ -166,3 +166,22 @@ def test_get_appdata_path_unsupported_os():
         mock_system.return_value = "UnsupportedOS"
         with pytest.raises(NotImplementedError):
             path.get_appdata_path()
+
+def test_get_log_path():
+    with patch('youtube_downloader.util.path.get_appdata_path') as mock_get_appdata_path:
+        mock_get_appdata_path.return_value = os.path.join('fake', 'appdata', 'path')
+        log_path = path.get_log_path()
+        expected_path = os.path.join('fake', 'appdata', 'path', 'logs')
+        assert log_path == expected_path
+        mock_get_appdata_path.assert_called_once()
+
+def test_get_config_path():
+    with patch('youtube_downloader.util.path.get_appdata_path') as mock_get_appdata_path:
+        mock_get_appdata_path.return_value = os.path.join('fake', 'appdata', 'path')
+        config_path = path.get_config_path()
+        expected_path = os.path.join('fake', 'appdata', 'path', 'config')
+        assert config_path == expected_path
+        mock_get_appdata_path.assert_called_once()
+
+if __name__ == "__main__":
+    pytest.main([__file__])

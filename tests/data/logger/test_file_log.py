@@ -78,3 +78,6 @@ def test_log_file_handler_rotation(tmp_path):
     for file in [log_file] + [f"{log_file}.{i}" for i in range(1, 4)]:
         if os.path.exists(file):
             os.remove(file)
+
+if __name__ == "__main__":
+    pytest.main([__file__])

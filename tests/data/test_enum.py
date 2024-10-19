@@ -49,3 +49,6 @@ def test_get_all_members():
     assert Locale.ko_KR in all_members
     assert Locale.en_US in all_members
     assert 'xx_XX' not in all_members  # Gibberish locale should not be present
+
+if __name__ == "__main__":
+    pytest.main([__file__])

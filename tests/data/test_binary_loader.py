@@ -7,6 +7,8 @@ Copyright (c) 2024 John Yoon. All rights reserved.
 Licensed under the MIT License. See LICENSE file in the project root for more information.
 """
 
+import pytest
+
 from youtube_downloader.data.loaders.binary_loader import BinaryLoader
 
 def test_singleton_instance():
@@ -44,3 +46,6 @@ def test_load_ffmpeg():
     loader.load_ffmpeg()
     assert hasattr(loader, 'ffmpeg_exe'), "ffmpeg_exe attribute not set."
     assert isinstance(loader.ffmpeg_exe, str), "ffmpeg_exe is not a string."
+
+if __name__ == "__main__":
+    pytest.main([__file__])

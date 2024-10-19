@@ -159,3 +159,12 @@ def get_log_path() -> str:
         str: The absolute path to the log directory.
     """
     return os.path.join(get_appdata_path(), "logs")
+
+def get_config_path() -> str:
+    """
+    Get the path to the config directory.
+
+    Returns:
+        str: The absolute path to the config directory.
+    """
+    return os.path.join(get_appdata_path(), "config")
