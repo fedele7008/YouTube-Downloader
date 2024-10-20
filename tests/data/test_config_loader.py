@@ -90,5 +90,38 @@ def test_get_config(config_loader):
     with patch.object(config_loader, 'DEFAULT_CONFIG', {"settings": {"default": "config"}}):
         assert config_loader.get_config() == {"default": "config"}
 
+def test_save_config(config_loader):
+    # Test saving valid config
+    valid_config = {
+        "locale": "en_US",
+        "theme": "system_light",
+        "debug_mode": False,
+        "debug_level": "DEBUG",
+        "font": "Arial",
+        "font_size": 12,
+        "standard_download_path": "/path/to/downloads",
+        "last_download_path": "/path/to/last/download",
+        "load_last_download_path": True,
+    }
+    config_loader.save_config(valid_config)
+    
+    # Verify saved config
+    with open(config_loader.config_path, 'r') as f:
+        saved_config = json.load(f)
+    assert saved_config["version"] == youtube_downloader.__version__
+    assert saved_config["settings"] == valid_config
+
+    # Test saving config with missing key
+    invalid_config = valid_config.copy()
+    del invalid_config["locale"]
+    with pytest.raises(ValueError, match="Config is missing key: locale"):
+        config_loader.save_config(invalid_config)
+
+    # Test saving config with extraneous key
+    invalid_config = valid_config.copy()
+    invalid_config["extra_key"] = "extra_value"
+    with pytest.raises(ValueError, match="Config has extraneous key: extra_key"):
+        config_loader.save_config(invalid_config)
+
 if __name__ == "__main__":
     pytest.main([__file__])

@@ -9,15 +9,24 @@ Licensed under the MIT License. See LICENSE file in the project root for more in
 
 from youtube_downloader.data.loaders.config_loader import ConfigLoader
 from youtube_downloader.data.loaders.binary_loader import BinaryLoader
+from youtube_downloader.data.loaders.font_loader import FontLoader
 from youtube_downloader.data.log_manager import LogManager, get_null_logger
 
 class ResourceManager():
     def __init__(self, log_manager: LogManager | None = None):
-        self.logger = log_manager.get_logger() if log_manager else get_null_logger()
-        self.config_loader = ConfigLoader(log_manager)
+        # Set logger
+        self.log_manager = log_manager
+        self.logger = self.log_manager.get_logger() if self.log_manager else get_null_logger()
+
+        # Initialize binary loader
+        self.binary_loader = BinaryLoader(self.log_manager)
+
+        # Initialize config loader
+        self.config_loader = ConfigLoader(self.log_manager)
         if not self.config_loader.check_config():
             self.config_loader.create_default_config(override=True)
-        self.config = self.config_loader.get_config()
         
-        self.binary_loader = BinaryLoader(log_manager)
+        # Initialize font loader
+        self.font_loader = FontLoader(self.config_loader, self.log_manager)
+
         self.logger.info("Resource manager service started")

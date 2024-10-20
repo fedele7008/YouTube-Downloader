@@ -42,6 +42,19 @@ Note that settings schema may change by the application version, hence there
 may be a migration process required when the application version is updated.
 """
 
+class ConfigKeys:
+    VERSION = "version"
+    SETTINGS = "settings"
+    SETTINGS_LOCALE = "locale"
+    SETTINGS_THEME = "theme"
+    SETTINGS_DEBUG_MODE = "debug_mode"
+    SETTINGS_DEBUG_LEVEL = "debug_level"
+    SETTINGS_FONT = "font"
+    SETTINGS_FONT_SIZE = "font_size"
+    SETTINGS_STANDARD_DOWNLOAD_PATH = "standard_download_path"
+    SETTINGS_LAST_DOWNLOAD_PATH = "last_download_path"
+    SETTINGS_LOAD_LAST_DOWNLOAD_PATH = "load_last_download_path"
+
 class ConfigLoader():
     """
     A class for loading and managing application configuration.
@@ -68,17 +81,17 @@ class ConfigLoader():
         if not os.path.exists(get_config_path()):
             os.makedirs(get_config_path())
         self.DEFAULT_CONFIG = {
-            "version": f"{youtube_downloader.__version__}",
-            "settings": {
-                "locale": Locale.get_default().to_str(),
-                "theme": "system_light",
-                "debug_mode": False,
-                "debug_level": "DEBUG",
-                "font": get_default_system_font(),
-                "font_size": 12,
-                "standard_download_path": get_system_download_path(),
-                "last_download_path": get_system_download_path(),
-                "load_last_download_path": True,
+            ConfigKeys.VERSION: f"{youtube_downloader.__version__}",
+            ConfigKeys.SETTINGS: {
+                ConfigKeys.SETTINGS_LOCALE: Locale.get_default().to_str(),
+                ConfigKeys.SETTINGS_THEME: "system_light",
+                ConfigKeys.SETTINGS_DEBUG_MODE: False,
+                ConfigKeys.SETTINGS_DEBUG_LEVEL: "DEBUG",
+                ConfigKeys.SETTINGS_FONT: get_default_system_font(),
+                ConfigKeys.SETTINGS_FONT_SIZE: 12,
+                ConfigKeys.SETTINGS_STANDARD_DOWNLOAD_PATH: get_system_download_path(),
+                ConfigKeys.SETTINGS_LAST_DOWNLOAD_PATH: get_system_download_path(),
+                ConfigKeys.SETTINGS_LOAD_LAST_DOWNLOAD_PATH: True,
             }
         }
         self.logger.debug(f"Config loader initialized with config path: {self.config_path}")
@@ -113,19 +126,25 @@ class ConfigLoader():
             json.dump(self.DEFAULT_CONFIG, f, indent=4)
         self.logger.debug(f"Created default config file: {self.config_path}")
 
-    def get_config(self) -> dict:
+    def get_config(self, key: str | None = None):
         """
-        Retrieve the current configuration.
+        Retrieve the current configuration or a specific configuration value.
 
         This method reads the configuration file and returns its contents as a dictionary.
+        If a specific key is provided, it returns the value for that key.
         If the configuration file version doesn't match the current application version,
         it returns the default configuration.
 
+        Args:
+            key (str | None): The specific configuration key to retrieve. If None, returns the entire configuration.
+
         Returns:
-            dict: The current configuration settings.
+            dict | Any: The entire configuration settings if no key is provided,
+                        or the specific value for the given key.
 
         Raises:
             FileNotFoundError: If the configuration file does not exist.
+            KeyError: If the specified key is not found in the configuration.
         """
         if not self.check_config():
             err_str = f"Config file does not exist: {self.config_path}"
@@ -135,8 +154,60 @@ class ConfigLoader():
         with open(self.config_path, "r") as f:
             data = json.load(f)
 
-        if data["version"] != youtube_downloader.__version__:
-            self.logger.warning(f"Config file version mismatch: config version is {data['version']} where current version is {youtube_downloader.__version__}. Getting default config.")
-            return self.DEFAULT_CONFIG["settings"]
+        if data[ConfigKeys.VERSION] != youtube_downloader.__version__:
+            self.logger.warning(f"Config file version mismatch: config version is {data[ConfigKeys.VERSION]} where current version is {youtube_downloader.__version__}. Getting default config.")
+            return self.DEFAULT_CONFIG[ConfigKeys.SETTINGS]
         
-        return data["settings"]
+        if key:
+            try:
+                return data[ConfigKeys.SETTINGS][key]
+            except KeyError:
+                err_str = f"Config key not found: {key}"
+                self.logger.error(err_str)
+                raise KeyError(err_str)
+        else:
+            return data[ConfigKeys.SETTINGS]
+
+    def save_config(self, config: dict) -> None:
+        """
+        Save the provided configuration to the config file.
+
+        This method validates the input configuration against the default configuration,
+        ensures all required keys are present and no extraneous keys exist, then saves
+        the configuration to the file.
+
+        Args:
+            config (dict): The configuration dictionary to save.
+
+        Raises:
+            ValueError: If the input config is missing required keys or contains extraneous keys.
+
+        Note:
+            The saved configuration includes the current version of the application.
+        """
+        # Check if config is valid
+        for key in self.DEFAULT_CONFIG[ConfigKeys.SETTINGS].keys():
+            if key not in config:
+                err_str = f"Config is missing key: {key}"
+                self.logger.error(err_str)
+                raise ValueError(err_str)
+        
+        for key in config.keys():
+            if key not in self.DEFAULT_CONFIG[ConfigKeys.SETTINGS].keys():
+                err_str = f"Config has extraneous key: {key}"
+                self.logger.error(err_str)
+                raise ValueError(err_str)
+        
+        # Save config
+        full_config = {
+            ConfigKeys.VERSION: f"{youtube_downloader.__version__}",
+            ConfigKeys.SETTINGS: config
+        }
+        with open(self.config_path, "w") as f:
+            json.dump(full_config, f, indent=4)
+        self.logger.debug(f"Saved config file: {self.config_path}")
+
+    def save_config_key(self, key: str, value) -> None:
+        config = self.get_config()
+        config[key] = value
+        self.save_config(config)
