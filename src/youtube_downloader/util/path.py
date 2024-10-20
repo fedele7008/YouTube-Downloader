@@ -105,6 +105,16 @@ def get_style_path() -> str:
     return os.path.abspath(os.path.join(get_resource_path(), "style"))
 
 
+def get_resource_theme_path() -> str:
+    """
+    Get the path to the resource theme directory.
+
+    Returns:
+        str: The absolute path to the resource theme directory.
+    """
+    return os.path.abspath(os.path.join(get_style_path(), "themes"))
+
+
 def recursive_find(dir: str, ext: str) -> list[str]:
     """
     Recursively find files with a specific extension in a directory.
@@ -122,6 +132,21 @@ def recursive_find(dir: str, ext: str) -> list[str]:
             if file.endswith(f".{ext}"):
                 result.append(os.path.join(root, file))
     return result
+
+
+def flat_find(dir: str, ext: str) -> list[str]:
+    """
+    Find files with a specific extension in a directory (only within given directory - Non-recursive)
+
+    Args:
+        dir (str): The directory to search in.
+        ext (str): The file extension to search for (without the dot).
+
+    Returns:
+        list[str]: A list of absolute paths to the found files.
+    """
+    return [os.path.join(dir, file) for file in os.listdir(dir) if file.endswith(f".{ext}")]
+
 
 def get_appdata_path() -> str:
     """
@@ -151,6 +176,7 @@ def get_appdata_path() -> str:
             raise NotImplementedError(f"Unsupported operating system: {current_os}")
     return os.path.join(appdata_root, appdata_dir)
 
+
 def get_log_path() -> str:
     """
     Get the path to the log directory.
@@ -160,6 +186,7 @@ def get_log_path() -> str:
     """
     return os.path.join(get_appdata_path(), "logs")
 
+
 def get_config_path() -> str:
     """
     Get the path to the config directory.
@@ -168,3 +195,13 @@ def get_config_path() -> str:
         str: The absolute path to the config directory.
     """
     return os.path.join(get_appdata_path(), "config")
+
+
+def get_theme_path() -> str:
+    """
+    Get the path to the theme directory.
+
+    Returns:
+        str: The absolute path to the theme directory.
+    """
+    return os.path.join(get_appdata_path(), "themes")

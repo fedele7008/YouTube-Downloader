@@ -1,14 +1,60 @@
+// Copyright (c) 2024 John Yoon. All rights reserved.
+// Licensed under the MIT License. See LICENSE file in the project root for more information.
+//
+// This is a theme file for YouTube Downloader Application.
+//
+// [THEME INFO]
+//     contains metadata about the theme.
+// [THEME VARIABLES]
+//     contains variables that can be used in this theme file only.
+//     these variables will be substituted in the theme colors and
+//     additional styles. Use ${variable} to refer to the variable.
+// [THEME COLORS]
+//     contains color variables that can be used in the theme.
+//     these variables are used in both core theme of the
+//     application and the additional styles, so DO NOT
+//     MODIFY THE NAME OF THESE VARIABLES.
+//
+//     Their values can be modified as theme colors.
+//
+//     Use ${variable} to refer to the variable.
+// [ADDITIONAL STYLES]
+//     contains additional styles that can be used in the theme.
+//
+//     Use ${variable} to refer to the variable defined in theme
+//     variables and theme colors sections.
+//
+//     This section follows qss syntax (https://doc.qt.io/qt-6/stylesheet-syntax.html)
+//     and will have highest priority over any other styles defined
+//     in the system (including the core styles).
+
+[THEME INFO]
+name: system_light
+author: John Yoon
+version: 2.1.0
+
+[THEME VARIABLES]
+theme-white: #F0F0F0
+theme-black: #4D4D4D
+theme-green: #4CAF50
+
+[THEME COLORS]
+background-color: ${theme-white}
+foreground-color: ${theme-black}
+primary-color: ${theme-green}
+
+[ADDITIONAL STYLES]
 QMainWindow, QMessageBox {
-    background-color: #F0F0F0;
+    background-color: ${theme-white};
 }
 
 QMessageBox[class="error-dialog"] {
-    color: #4D4D4D;
+    color: ${theme-black};
     font-size: 14px;
 }
 
 QLabel, QPushButton, QTableWidget, QHeaderView {
-    color: #4D4D4D;
+    color: ${theme-black};
 }
 
 QPushButton {
@@ -26,7 +72,7 @@ QPushButton:pressed {
 }
 
 QPushButton[class="primary"] {
-    background-color: #4CAF50;
+    background-color: ${theme-green};
     color: white;
 }
 

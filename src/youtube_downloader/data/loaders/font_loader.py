@@ -90,6 +90,7 @@ class FontLoader():
         if self.validate_font_family(font_family):
             self.config_font = font_family
             self.config_loader.save_config_key(ConfigKeys.SETTINGS_FONT, font_family)
+            self.logger.info(f"Changed config font to: {font_family}")
         else:
             err_str = f"Invalid font family: {font_family}"
             self.logger.error(err_str)

@@ -83,4 +83,10 @@ QHeaderView::section {
 * {
     border: 2px solid black;
 }
+
+#test {
+    test-foreground: ${foreground-color};
+    test-background: ${background-color};
+    test-primary: ${primary-color};
+}
 */

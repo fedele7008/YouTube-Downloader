@@ -10,6 +10,7 @@ Licensed under the MIT License. See LICENSE file in the project root for more in
 from youtube_downloader.data.loaders.config_loader import ConfigLoader
 from youtube_downloader.data.loaders.binary_loader import BinaryLoader
 from youtube_downloader.data.loaders.font_loader import FontLoader
+from youtube_downloader.data.loaders.style_loader import StyleLoader
 from youtube_downloader.data.log_manager import LogManager, get_null_logger
 
 class ResourceManager():
@@ -28,5 +29,8 @@ class ResourceManager():
         
         # Initialize font loader
         self.font_loader = FontLoader(self.config_loader, self.log_manager)
+
+        # Initialize style loader
+        self.style_loader = StyleLoader(self.config_loader, self.log_manager)
 
         self.logger.info("Resource manager service started")

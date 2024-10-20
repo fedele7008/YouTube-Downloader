@@ -13,6 +13,7 @@ from youtube_downloader.data.log_manager import LogManager, get_null_logger
 from youtube_downloader.util.path import get_config_path, get_system_download_path
 from youtube_downloader.util.gui import get_default_system_font
 from youtube_downloader.data.types.locale import Locale
+from youtube_downloader.data.loaders.common import DEFAULT_THEME_NAME
 import youtube_downloader
 
 """
@@ -84,7 +85,7 @@ class ConfigLoader():
             ConfigKeys.VERSION: f"{youtube_downloader.__version__}",
             ConfigKeys.SETTINGS: {
                 ConfigKeys.SETTINGS_LOCALE: Locale.get_default().to_str(),
-                ConfigKeys.SETTINGS_THEME: "system_light",
+                ConfigKeys.SETTINGS_THEME: DEFAULT_THEME_NAME,
                 ConfigKeys.SETTINGS_DEBUG_MODE: False,
                 ConfigKeys.SETTINGS_DEBUG_LEVEL: "DEBUG",
                 ConfigKeys.SETTINGS_FONT: get_default_system_font(),
@@ -205,7 +206,7 @@ class ConfigLoader():
         }
         with open(self.config_path, "w") as f:
             json.dump(full_config, f, indent=4)
-        self.logger.debug(f"Saved config file: {self.config_path}")
+        self.logger.debug(f"Saved config")
 
     def save_config_key(self, key: str, value) -> None:
         config = self.get_config()
