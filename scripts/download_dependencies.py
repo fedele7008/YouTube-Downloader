@@ -18,10 +18,10 @@ Copyright (c) 2024 John Yoon. All rights reserved.
 Licensed under the MIT License. See LICENSE file in the project root for more information.
 """
 
-import os, subprocess, zipfile, uuid, shutil, gdown
+import os, subprocess, zipfile, uuid, shutil, gdown, platform
 
 # Determine the operating system
-current_os: str = os.uname().sysname
+current_os: str = platform.system()
 
 # Find project root
 project_root: str = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
