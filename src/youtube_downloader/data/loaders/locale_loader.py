@@ -49,7 +49,7 @@ class LocaleLoader():
             with open(file_path, "r", encoding="utf-8") as f:
                 locale_data = json.load(f)
                 self.locales[locale] = locale_data
-                self.logger.debug(f"Loaded locale: {locale_data['name']}")
+                self.logger.debug(f"Loaded locale: {file_path}")
 
     def get_locale(self, locale: Locale) -> dict:
         return self.locales[locale]
