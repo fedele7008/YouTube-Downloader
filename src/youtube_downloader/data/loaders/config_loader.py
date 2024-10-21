@@ -84,7 +84,7 @@ class ConfigLoader():
         self.config_file = "settings.json"
         self.config_path = os.path.join(get_config_path(), self.config_file)
         if not os.path.exists(get_config_path()):
-            os.makedirs(get_config_path())
+            os.makedirs(get_config_path(), exist_ok=True)
         self.DEFAULT_CONFIG = {
             ConfigKeys.VERSION: f"{youtube_downloader.__version__}",
             ConfigKeys.SETTINGS: {
