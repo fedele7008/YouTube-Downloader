@@ -85,6 +85,10 @@ class ConfigLoader():
         self.config_path = os.path.join(get_config_path(), self.config_file)
         if not os.path.exists(get_config_path()):
             os.makedirs(get_config_path(), exist_ok=True)
+            if not os.path.exists(get_config_path()):
+                err_str = f"Failed to create config directory: {get_config_path()}"
+                self.logger.error(err_str)
+                raise FileNotFoundError(err_str)
         self.DEFAULT_CONFIG = {
             ConfigKeys.VERSION: f"{youtube_downloader.__version__}",
             ConfigKeys.SETTINGS: {
