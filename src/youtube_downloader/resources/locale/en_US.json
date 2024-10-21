@@ -1,0 +1,24 @@
+{
+    "name": "English",
+    "components": {
+        "app-title": "YouTube Downloader",
+        "url-label": "Video URL:",
+        "url-input-placeholder": "Enter YouTube video URL",
+        "download-path-label": "Download Directory:",
+        "browse-button": "Browse",
+        "browse-dialog-title": "Download Directory Selection",
+        "search-button": "Search",
+        "input-error-message-empty-dest": "Download directory is not set.",
+        "input-error-message-dest-dir-not-exist": "Download directory is not a directory or does not exist.",
+        "input-error-message-dest-dir-not-writable": "Download directory is not writable.",
+        "ok-button-text": "Ok",
+        "input-error-prompt-title": "Search Failed",
+        "input-error-prompt-message-empty-url": "URL is empty.",
+        "input-error-prompt-message-invalid-video": "YouTube video URL is invalid.",
+        "loading-label": "Loading video...",
+        "video-download-tab": "Video",
+        "audio-download-tab": "Audio",
+        "video-download-table-header": ["Resolution", "Format", "File Size", "Download"],
+        "video-download-status-table-header": ["Thumbnail", "Video Name", "Resolution", "File Size", "Progress", "Time Left", "Status"]
+    }
+}

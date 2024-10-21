@@ -37,7 +37,9 @@ def test_qt_handler_initialization(qt_handler):
 def test_qt_handler_emit(qt_handler, logger):
     logger.debug("Test message")
     assert len(qt_handler.buffer) == 1
-    assert "Test message" in qt_handler.buffer[0]
+    level, msg = qt_handler.buffer[0]
+    assert isinstance(level, int)
+    assert "Test message" in msg
 
 def test_qt_handler_bind_signal(qapp, qt_handler, logger):
     text_edit = QTextEdit()

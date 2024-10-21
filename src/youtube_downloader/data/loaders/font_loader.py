@@ -7,7 +7,7 @@ Copyright (c) 2024 John Yoon. All rights reserved.
 Licensed under the MIT License. See LICENSE file in the project root for more information.
 """
 
-import os
+import os, logging
 
 from PySide6.QtGui import QFontDatabase
 from PySide6.QtWidgets import QApplication
@@ -38,6 +38,8 @@ class FontLoader():
             self.logger.warning(f"Invalid font family: {self.config_font}. Using default system font: {get_default_system_font()}")
             self.change_config_font(get_default_system_font())
 
+        self.logger.debug(f"Font Loader initialized with config font: {self.config_font}")
+
     def register_font(self, font_path: str):
         if not os.path.exists(font_path):
             err_str = f"Font file not found: {font_path}"
@@ -57,7 +59,7 @@ class FontLoader():
     
         self.registered_font_families.add(QFontDatabase.applicationFontFamilies(font_id)[0])
 
-        self.logger.debug(f"Registered font file [ID: {font_id}]: {font_path}")
+        self.logger.log(logging.NOTSET, f"Registered font file [ID: {font_id}]: {font_path}")
 
     def register_font_recursive(self):
         font_dir = get_font_path()

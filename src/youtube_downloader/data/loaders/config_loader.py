@@ -14,6 +14,9 @@ from youtube_downloader.util.path import get_config_path, get_system_download_pa
 from youtube_downloader.util.gui import get_default_system_font
 from youtube_downloader.data.types.locale import Locale
 from youtube_downloader.data.loaders.common import DEFAULT_THEME_NAME
+from youtube_downloader.data.log_handlers.gui_handler import QtHandler
+from youtube_downloader.data.abstracts.log_handler import LogHandler
+from youtube_downloader.data.types.log_levels import LogLevel
 import youtube_downloader
 
 """
@@ -76,7 +79,8 @@ class ConfigLoader():
         Args:
             log_manager (LogManager | None): An optional log manager for logging operations.
         """
-        self.logger = log_manager.get_logger() if log_manager else get_null_logger()
+        self.log_manager = log_manager
+        self.logger = self.log_manager.get_logger() if self.log_manager else get_null_logger()
         self.config_file = "settings.json"
         self.config_path = os.path.join(get_config_path(), self.config_file)
         if not os.path.exists(get_config_path()):
@@ -87,7 +91,7 @@ class ConfigLoader():
                 ConfigKeys.SETTINGS_LOCALE: Locale.get_default().to_str(),
                 ConfigKeys.SETTINGS_THEME: DEFAULT_THEME_NAME,
                 ConfigKeys.SETTINGS_DEBUG_MODE: False,
-                ConfigKeys.SETTINGS_DEBUG_LEVEL: "DEBUG",
+                ConfigKeys.SETTINGS_DEBUG_LEVEL: LogLevel.get_default().to_str(),
                 ConfigKeys.SETTINGS_FONT: get_default_system_font(),
                 ConfigKeys.SETTINGS_FONT_SIZE: 12,
                 ConfigKeys.SETTINGS_STANDARD_DOWNLOAD_PATH: get_system_download_path(),
@@ -95,6 +99,26 @@ class ConfigLoader():
                 ConfigKeys.SETTINGS_LOAD_LAST_DOWNLOAD_PATH: True,
             }
         }
+
+        if not self.check_config():
+            self.create_default_config(override=True)
+        
+        log_level_str: str = self.get_config(ConfigKeys.SETTINGS_DEBUG_LEVEL)
+        
+        # Check if log level is valid
+        if not LogLevel.validate_str(log_level_str):
+            self.logger.warning(f"Invalid log level: {log_level_str}. Using default log level: {LogLevel.get_default().to_str()}")
+            log_level = LogLevel.get_default()
+            self.logger.debug(f"Set config log level to {log_level.to_str()}")
+            self.save_config_key(ConfigKeys.SETTINGS_DEBUG_LEVEL, log_level.to_str())
+        else:
+            log_level = LogLevel.parse_str(log_level_str)
+
+        if self.log_manager:
+            self.set_display_log_level(log_level)
+        else:
+            self.logger.debug(f"Log manager not provided, skipping display log level setting")
+
         self.logger.debug(f"Config loader initialized with config path: {self.config_path}")
         
     def check_config(self) -> bool:
@@ -212,3 +236,15 @@ class ConfigLoader():
         config = self.get_config()
         config[key] = value
         self.save_config(config)
+
+    def set_display_log_level(self, log_level: LogLevel):
+        if not self.log_manager:
+            self.logger.debug(f"Log manager not available, skipping display log level setting")
+            return
+        log_level_logging_enum: int = LogLevel.map_to_logging_enum(log_level)
+        display_log_handlers: list[LogHandler] = self.log_manager.get_handlers_filter(QtHandler)
+        if display_log_handlers:
+            self.logger.debug(f"{len(display_log_handlers)} GUI Log Handlers found")
+        for handler in display_log_handlers:
+            handler.set_log_level(log_level_logging_enum)
+            self.logger.debug(f"Set GUI Log Handler {handler.name} log level to {log_level.to_str()}")

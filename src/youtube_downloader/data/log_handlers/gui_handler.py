@@ -89,7 +89,7 @@ class QtHandler(LogHandler):
         """
         msg = self.format(record)
         with self.buffer_lock:
-            self.buffer.append(msg)
+            self.buffer.append((self.level, msg))
             if self.gui_ready:
                 self.signal_emitter.log_signal.emit(msg)
 
@@ -107,5 +107,6 @@ class QtHandler(LogHandler):
             self.signal_emitter.log_signal.connect(slot_function)
             temporary_update_signal_emitter.log_signal.connect(slot_function)
             self.gui_ready = True
-            for msg in self.buffer:
-                temporary_update_signal_emitter.log_signal.emit(msg)
+            for level, msg in self.buffer:
+                if level >= self.level:
+                    temporary_update_signal_emitter.log_signal.emit(msg)

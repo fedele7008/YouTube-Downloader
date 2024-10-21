@@ -42,6 +42,9 @@ def test_init(mock_config_path, config_loader):
     assert os.path.exists(mock_config_path)
 
 def test_check_config(config_loader):
+    if os.path.exists(config_loader.config_path):
+        os.remove(config_loader.config_path)
+    
     assert not config_loader.check_config()
     
     with open(config_loader.config_path, 'w') as f:
@@ -68,7 +71,9 @@ def test_create_default_config(config_loader):
         assert json.load(f) != {"test": "data"}
 
 def test_get_config(config_loader):
-    # Test when file doesn't exist
+    if os.path.exists(config_loader.config_path):
+        os.remove(config_loader.config_path)
+    
     with pytest.raises(FileNotFoundError):
         config_loader.get_config()
     

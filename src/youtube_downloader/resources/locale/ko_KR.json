@@ -1,0 +1,24 @@
+{
+    "name": "한국어",
+    "components": {
+        "app-title": "유튜브 다운로더",
+        "url-label": "영상 링크:",
+        "url-input-placeholder": "YouTube 비디오 URL을 입력하세요",
+        "download-path-label": "다운로드 경로:",
+        "browse-button": "폴더 변경",
+        "browse-dialog-title": "다운로드 경로 선택",
+        "search-button": "검색",
+        "input-error-message-empty-dest": "다운로드 경로가 비어 있습니다.",
+        "input-error-message-dest-dir-not-exist": "다운로드 경로가 폴더가 아니거나 존재하지 않습니다.",
+        "input-error-message-dest-dir-not-writable": "다운로드 경로에 접근할 수 없습니다.",
+        "ok-button-text": "확인",
+        "input-error-prompt-title": "검색 실패",
+        "input-error-prompt-message-empty-url": "검색할 URL이 비어 있습니다.",
+        "input-error-prompt-message-invalid-video": "동영상 URL이 유효하지 않습니다.",
+        "loading-label": "동영상을 불러오는 중...",
+        "video-download-tab": "동영상",
+        "audio-download-tab": "오디오",
+        "video-download-table-header": ["화질", "포멧", "파일크기", "다운로드"],
+        "video-download-status-table-header": ["썸네일", "비디오 이름", "해상도", "파일 크기", "진행률", "남은 시간", "상태"]
+    }
+}

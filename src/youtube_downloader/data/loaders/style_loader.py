@@ -248,6 +248,8 @@ class StyleLoader():
             raise ValueError(err_str)
         
         self.reload_global_style()
+        self.logger.info(f"Themes available: {self.get_all_available_themes()}")
+        self.logger.debug(f"Style Loader initialized with config theme: {self.config_theme}")
 
     def change_config_theme(self, theme_name: str) -> None:
         # Verify that the theme exists
