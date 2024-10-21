@@ -10,7 +10,7 @@ Licensed under the MIT License. See LICENSE file in the project root for more in
 from PySide6.QtWidgets import QWidget, QApplication
 from PySide6.QtGui import QScreen, QCursor, QFontDatabase
 
-def center_widget_on_screen(widget: QWidget):
+def center_widget_on_screen(widget: QWidget, screen: QScreen | None = None):
     """
     Centers the given widget on the primary screen.
 
@@ -24,7 +24,7 @@ def center_widget_on_screen(widget: QWidget):
         This function assumes that a QApplication instance has been created
         and that a primary screen is available.
     """
-    screen = QApplication.screenAt(QCursor.pos())
+    screen = QApplication.screenAt(QCursor.pos()) if screen is None else screen
     centerPoint = QScreen.availableGeometry(screen).center()
     fg = widget.frameGeometry()
     fg.moveCenter(centerPoint)

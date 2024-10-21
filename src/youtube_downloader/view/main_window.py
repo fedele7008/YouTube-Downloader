@@ -16,7 +16,7 @@ class MainWindow(QMainWindow):
     def __init__(self, **kwargs: Any):
         super().__init__()
         self.setGeometry(0, 0, 900, 600)
-        center_widget_on_screen(self)
+        center_widget_on_screen(self, kwargs.get("screen", None))
         self.init_ui()
         
     def init_ui(self):

@@ -7,7 +7,7 @@ Copyright (c) 2024 John Yoon. All rights reserved.
 Licensed under the MIT License. See LICENSE file in the project root for more information.
 """
 
-import sys, logging, os
+import sys, logging, os, time
 
 from PySide6.QtWidgets import QApplication
 
@@ -15,6 +15,7 @@ from youtube_downloader.data.resource_manager import ResourceManager
 from youtube_downloader.util.path import get_log_path
 from youtube_downloader.model.application import YouTubeDownloaderModel
 from youtube_downloader.view.main_window import MainWindow
+from youtube_downloader.view.splash_window import SplashScreen
 from youtube_downloader.controller.main_window_controller import MainWindowController
 from youtube_downloader.data.log_manager import LogManager
 from youtube_downloader.data.log_handlers.console_handler import ConsoleHandler
@@ -38,17 +39,23 @@ class YouTubeDownloader:
         for handler in self.handlers:
             self.log_manager.add_handler(handler)
 
+        # Initialize splash screen
+        self.splash_screen = SplashScreen()
+        self.splash_screen.show()
+        
         # Initialize resource manager
-        self.resource_manager = ResourceManager(self.log_manager)
+        self.resource_manager = ResourceManager(self.log_manager, self.splash_screen.update_progress)
 
         # Initialize application model
         self.app_model = YouTubeDownloaderModel()
 
         # Initialize application view
-        self.app_window = MainWindow()
+        self.app_window = MainWindow(screen=self.splash_screen.screen())
 
         # Initialize application controller - viewmodel
         self.app_window_controller = MainWindowController(self.app_window, self.app_model)
+
+        self.splash_screen.close()
 
         # Start application
         self.app_window_controller.show()
