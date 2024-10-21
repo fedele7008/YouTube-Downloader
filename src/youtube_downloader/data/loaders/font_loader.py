@@ -75,10 +75,10 @@ class FontLoader():
         
         font_files = recursive_find(font_dir, "ttf") + recursive_find(font_dir, "otf")
         for font_file in font_files:
-            self.register_font(font_file)
-
-        for font_file in font_files:
-            self.register_font(font_file)
+            try:
+                self.register_font(font_file)
+            except Exception as e:
+                self.logger.error(f"Failed to register font file: {font_file}. Error: {e}")
 
         self.logger.debug(f"Registered {len(self.registered_font_families)} font files")
 
