@@ -8,7 +8,7 @@ Licensed under the MIT License. See LICENSE file in the project root for more in
 """
 
 from PySide6.QtCore import Slot
-from PySide6.QtGui import QIcon
+from PySide6.QtGui import QIcon, QPixmap
 
 from youtube_downloader.model.application import YouTubeDownloaderModel
 from youtube_downloader.view.main_window import MainWindow
@@ -28,8 +28,8 @@ class MainWindowController():
         self.refresh_ui()
 
     def config_ui(self):
-        icon_path = self.resource_manager.media_loader.get_icon()
-        self.view.setWindowIcon(QIcon(icon_path))
+        icon_pixmap = QPixmap(self.resource_manager.media_loader.get_icon())
+        self.view.setWindowIcon(QIcon(icon_pixmap))
     
     def bind_model(self):
         self.model.app_name_changed.connect(self.on_app_name_changed)
