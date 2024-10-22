@@ -33,8 +33,6 @@ class SplashScreen(QSplashScreen):
         self.setEnabled(False)
         center_widget_on_screen(self)
 
-        self.animation = None
-
         self.progress_bar = QProgressBar(self)
         progress_bar_height = 5
         self.progress_bar.setGeometry(0, height - progress_bar_height, width, progress_bar_height)
