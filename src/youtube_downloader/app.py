@@ -46,6 +46,9 @@ class YouTubeDownloader:
 
         # Initialize resource manager
         self.resource_manager = ResourceManager(self.log_manager, self.splash_screen.update_progress)
+        if self.resource_manager.is_first_load():
+            self.logger.info("First config load detected, showing setup screen")
+            # TODO: Show setup screen
 
         # Initialize application model
         self.app_model = YouTubeDownloaderModel()
@@ -54,7 +57,7 @@ class YouTubeDownloader:
         self.app_window = MainWindow(screen=self.screen)
 
         # Initialize application controller - viewmodel
-        self.app_window_controller = MainWindowController(self.app_window, self.app_model)
+        self.app_window_controller = MainWindowController(self.log_manager, self.resource_manager, self.app_window, self.app_model)
 
         # Close splash screen
         self.splash_screen.close()

@@ -104,7 +104,9 @@ class ConfigLoader():
             }
         }
 
+        self.is_first_load = False
         if not self.check_config():
+            self.is_first_load = True
             self.create_default_config(override=True)
         
         log_level_str: str = self.get_config(ConfigKeys.SETTINGS_DEBUG_LEVEL)
@@ -252,3 +254,6 @@ class ConfigLoader():
         for handler in display_log_handlers:
             handler.set_log_level(log_level_logging_enum)
             self.logger.debug(f"Set GUI Log Handler {handler.name} log level to {log_level.to_str()}")
+
+    def get_is_first_load(self) -> bool:
+        return self.is_first_load

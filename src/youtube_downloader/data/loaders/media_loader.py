@@ -10,7 +10,7 @@ Licensed under the MIT License. See LICENSE file in the project root for more in
 import os
 
 from youtube_downloader.data.log_manager import LogManager, get_null_logger
-from youtube_downloader.util.path import get_media_path
+from youtube_downloader.util.path import get_media_path, get_icon_path
 
 class MediaLoader:
     def __init__(self, log_manager: LogManager | None = None):
@@ -30,3 +30,12 @@ class MediaLoader:
 
     def get_media(self) -> dict[str, str]:
         return self.media
+    
+    def get_icon(self) -> str:
+        icon_path = os.path.join(get_icon_path(), "YoutubeDownloader.jpg")
+        if os.path.exists(icon_path):
+            return icon_path
+        else:
+            err_str = f"Icon file not found at {icon_path}"
+            self.logger.error(err_str)
+            raise FileNotFoundError(err_str)

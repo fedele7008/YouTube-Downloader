@@ -8,17 +8,28 @@ Licensed under the MIT License. See LICENSE file in the project root for more in
 """
 
 from PySide6.QtCore import Slot
+from PySide6.QtGui import QIcon
 
 from youtube_downloader.model.application import YouTubeDownloaderModel
 from youtube_downloader.view.main_window import MainWindow
 from youtube_downloader.util.decorator import block_signal
+from youtube_downloader.data.log_manager import LogManager, get_null_logger
+from youtube_downloader.data.resource_manager import ResourceManager
 
 class MainWindowController():
-    def __init__(self, view: MainWindow, model: YouTubeDownloaderModel):
+    def __init__(self, log_manager: LogManager, resource_manager: ResourceManager, view: MainWindow, model: YouTubeDownloaderModel):
+        self.log_manager: LogManager = log_manager
+        self.logger = self.log_manager.get_logger() if self.log_manager else get_null_logger()
+        self.resource_manager: ResourceManager = resource_manager
         self.view: MainWindow = view
         self.model: YouTubeDownloaderModel = model
+        self.config_ui()
         self.bind_model()
         self.refresh_ui()
+
+    def config_ui(self):
+        icon_path = self.resource_manager.media_loader.get_icon()
+        self.view.setWindowIcon(QIcon(icon_path))
     
     def bind_model(self):
         self.model.app_name_changed.connect(self.on_app_name_changed)

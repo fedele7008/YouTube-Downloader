@@ -47,3 +47,6 @@ class ResourceManager():
             self.progress_hook(100, "Completed", 800)
 
         self.logger.info("Resource manager service started")
+
+    def is_first_load(self) -> bool:
+        return self.config_loader.get_is_first_load()
