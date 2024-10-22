@@ -29,7 +29,7 @@ class MainWindowController():
 
     def config_ui(self):
         icon = self.resource_manager.media_loader.get_icon()
-        self.view.setWindowIcon(icon)
+        self.view.main_widget.setWindowIcon(icon)
     
     def bind_model(self):
         self.model.app_name_changed.connect(self.on_app_name_changed)

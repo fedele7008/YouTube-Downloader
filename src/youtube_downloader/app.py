@@ -64,6 +64,8 @@ class YouTubeDownloader:
 
         # Start application
         self.app_window_controller.show()
+
+        self.app.setWindowIcon(self.resource_manager.media_loader.get_icon())
         self.logger.info("YouTube Downloader Service started")
 
     def show(self):

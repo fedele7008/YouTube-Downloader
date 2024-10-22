@@ -55,5 +55,4 @@ class MediaLoader:
         icon.addFile(icon_path, QSize(32, 32))
         icon.addFile(icon_path, QSize(48, 48))
         icon.addFile(icon_path, QSize(64, 64))
-        icon.addFile(icon_path, QSize(128, 128))
         return icon

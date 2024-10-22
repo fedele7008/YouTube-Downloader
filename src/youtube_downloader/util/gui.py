@@ -24,11 +24,13 @@ def center_widget_on_screen(widget: QWidget, screen: QScreen | None = None):
         This function assumes that a QApplication instance has been created
         and that a primary screen is available.
     """
-    screen = QApplication.screenAt(QCursor.pos()) if screen is None else screen
-    centerPoint = QScreen.availableGeometry(screen).center()
-    fg = widget.frameGeometry()
-    fg.moveCenter(centerPoint)
-    widget.move(fg.topLeft())
+    active_screen = QApplication.screenAt(QCursor.pos()) if screen is None else screen
+    if active_screen is None:
+        active_screen = QApplication.primaryScreen()
+    center_point = QScreen.availableGeometry(active_screen).center()
+    frame_geometry = widget.frameGeometry()
+    frame_geometry.moveCenter(center_point)
+    widget.move(frame_geometry.topLeft())
 
 def get_default_system_font() -> str:
     """
