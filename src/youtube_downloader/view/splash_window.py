@@ -7,11 +7,11 @@ Copyright (c) 2024 John Yoon. All rights reserved.
 Licensed under the MIT License. See LICENSE file in the project root for more information.
 """
 
-import os, time
+import os, sys
 
 from PySide6.QtWidgets import QSplashScreen, QProgressBar, QLabel, QApplication
 from PySide6.QtGui import QPixmap
-from PySide6.QtCore import Qt, QPropertyAnimation, QTimer
+from PySide6.QtCore import Qt, QPropertyAnimation, QEasingCurve
 
 from youtube_downloader.util.path import get_media_path
 from youtube_downloader.util.gui import center_widget_on_screen
@@ -34,7 +34,7 @@ class SplashScreen(QSplashScreen):
         center_widget_on_screen(self)
 
         self.progress_bar = QProgressBar(self)
-        progress_bar_height = 5
+        progress_bar_height = 8
         self.progress_bar.setGeometry(0, height - progress_bar_height, width, progress_bar_height)
         self.progress_bar.setStyleSheet("""
             QProgressBar {
@@ -43,12 +43,13 @@ class SplashScreen(QSplashScreen):
                 text-align: center;
             }
             QProgressBar::chunk {
-                background-color: #30B32D;
+                background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                                                  stop:0 #2D32B3, stop:1 #B32DFF);
                 border-top-right-radius: 2px;
                 border-bottom-right-radius: 2px;
             }
         """)
-        self.progress_bar.setMaximum(1000)
+        self.progress_bar.setMaximum(50000)
         self.progress_bar.setValue(0)
         self.progress_bar.setTextVisible(False)
 
@@ -56,6 +57,7 @@ class SplashScreen(QSplashScreen):
         self.message_label.setStyleSheet("""
             color: #F5F5F5;
             background-color: transparent;
+            font-family: 'Arial';
         """)
         self.message_label.resize(190, 20)
         self.message_label.move(width - self.message_label.width() - 10, height - self.message_label.height() - 10)
@@ -63,16 +65,54 @@ class SplashScreen(QSplashScreen):
         self.message_label.setText("Starting...")
         self.app.processEvents()
 
-    def update_progress(self, value: int, message: str, sleep_time: float = 0.2) -> None:
-        if value > self.progress_bar.maximum():
-            value = self.progress_bar.maximum()
-        elif value < 0:
-            value = 0
-        self.progress_bar.setValue(value)
-        self.message_label.setText(message)
-        self.repaint()
-        self.app.processEvents()
-        time.sleep(sleep_time)
+        self.animation = None
 
-    def close(self):
-        super().close()
+    def update_progress(self, percentage: float, message: str, min_duration_ms: int, callback = None, *args):
+        start_value = self.progress_bar.value()
+        end_value = int(percentage / 100 * self.progress_bar.maximum())
+        half_duration = min_duration_ms // 2
+
+        def update_message(value):
+            current_percentage = value / self.progress_bar.maximum() * 100
+            self.message_label.setText(f"{message}...{current_percentage:.0f}%")
+            self.app.processEvents()
+
+        update_message(start_value)
+
+        # First half animation
+        first_half_animation = QPropertyAnimation(self.progress_bar, b"value")
+        first_half_animation.setDuration(half_duration)
+        first_half_animation.setStartValue(start_value)
+        first_half_animation.setEndValue((start_value + end_value) // 2)
+        first_half_animation.valueChanged.connect(update_message)
+        first_half_animation.setEasingCurve(QEasingCurve.InCubic)
+        first_half_animation.start()
+        self.app.processEvents()
+        
+        # Wait for the first half animation to finish
+        while first_half_animation.state() == QPropertyAnimation.Running:
+            self.app.processEvents()
+
+        # Run callback
+        result = None
+        if callback:
+            result = callback(*args)
+
+        # Second half animation
+        second_half_animation = QPropertyAnimation(self.progress_bar, b"value")
+        second_half_animation.setDuration(half_duration)
+        second_half_animation.setStartValue(self.progress_bar.value())
+        second_half_animation.setEndValue(end_value)
+        second_half_animation.valueChanged.connect(update_message)
+        second_half_animation.setEasingCurve(QEasingCurve.OutCubic)
+        second_half_animation.start()
+        self.app.processEvents()
+
+        # Wait for the second half animation to finish
+        while second_half_animation.state() == QPropertyAnimation.Running:
+            self.app.processEvents()
+
+        # Set final message
+        update_message(end_value)
+
+        return result

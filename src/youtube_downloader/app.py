@@ -7,7 +7,7 @@ Copyright (c) 2024 John Yoon. All rights reserved.
 Licensed under the MIT License. See LICENSE file in the project root for more information.
 """
 
-import sys, logging, os, time
+import sys, logging, os
 
 from PySide6.QtWidgets import QApplication
 
@@ -56,6 +56,7 @@ class YouTubeDownloader:
         # Initialize application controller - viewmodel
         self.app_window_controller = MainWindowController(self.app_window, self.app_model)
 
+        # Close splash screen
         self.splash_screen.close()
 
         # Start application
