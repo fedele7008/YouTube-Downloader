@@ -28,8 +28,8 @@ class MainWindowController():
         self.refresh_ui()
 
     def config_ui(self):
-        icon_pixmap = QPixmap(self.resource_manager.media_loader.get_icon())
-        self.view.setWindowIcon(QIcon(icon_pixmap))
+        icon = self.resource_manager.media_loader.get_icon()
+        self.view.setWindowIcon(icon)
     
     def bind_model(self):
         self.model.app_name_changed.connect(self.on_app_name_changed)

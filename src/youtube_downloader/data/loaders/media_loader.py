@@ -7,7 +7,10 @@ Copyright (c) 2024 John Yoon. All rights reserved.
 Licensed under the MIT License. See LICENSE file in the project root for more information.
 """
 
-import os
+import os, platform
+
+from PySide6.QtCore import QSize
+from PySide6.QtGui import QIcon
 
 from youtube_downloader.data.log_manager import LogManager, get_null_logger
 from youtube_downloader.util.path import get_media_path, get_icon_path
@@ -31,11 +34,26 @@ class MediaLoader:
     def get_media(self) -> dict[str, str]:
         return self.media
     
-    def get_icon(self) -> str:
-        icon_path = os.path.join(get_icon_path(), "YoutubeDownloader.jpg")
-        if os.path.exists(icon_path):
-            return icon_path
-        else:
+    def get_icon(self) -> QIcon:
+        icon_file = None
+        current_os = platform.system()
+        match current_os:
+            case "Darwin":
+                icon_file = "YoutubeDownloader.icns"
+            case "Windows":
+                icon_file = "YoutubeDownloader.ico"
+            case _:
+                icon_file = "YoutubeDownloader.jpg"
+        icon_path = os.path.join(get_icon_path(), icon_file)
+        if not os.path.exists(icon_path):
             err_str = f"Icon file not found at {icon_path}"
             self.logger.error(err_str)
             raise FileNotFoundError(err_str)
+        icon = QIcon()
+        icon.addFile(icon_path, QSize(16, 16))
+        icon.addFile(icon_path, QSize(24, 24))
+        icon.addFile(icon_path, QSize(32, 32))
+        icon.addFile(icon_path, QSize(48, 48))
+        icon.addFile(icon_path, QSize(64, 64))
+        icon.addFile(icon_path, QSize(128, 128))
+        return icon
