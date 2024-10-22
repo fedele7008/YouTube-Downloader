@@ -27,6 +27,11 @@ class YouTubeDownloader:
         # Create QApplication instance safely
         self.app = QApplication.instance() if QApplication.instance() else QApplication(sys.argv)
 
+        # Initialize splash screen
+        self.splash_screen = SplashScreen()
+        self.splash_screen.show()
+        self.screen = self.splash_screen.screen()
+
         # Initialize log manager
         self.log_manager = LogManager("youtube_downloader", logging.DEBUG)
         self.logger = self.log_manager.get_logger()
@@ -39,10 +44,6 @@ class YouTubeDownloader:
         for handler in self.handlers:
             self.log_manager.add_handler(handler)
 
-        # Initialize splash screen
-        self.splash_screen = SplashScreen()
-        self.splash_screen.show()
-        
         # Initialize resource manager
         self.resource_manager = ResourceManager(self.log_manager, self.splash_screen.update_progress)
 
@@ -50,7 +51,7 @@ class YouTubeDownloader:
         self.app_model = YouTubeDownloaderModel()
 
         # Initialize application view
-        self.app_window = MainWindow(screen=self.splash_screen.screen())
+        self.app_window = MainWindow(screen=self.screen)
 
         # Initialize application controller - viewmodel
         self.app_window_controller = MainWindowController(self.app_window, self.app_model)

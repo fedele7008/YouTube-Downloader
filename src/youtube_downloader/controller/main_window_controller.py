@@ -34,6 +34,7 @@ class MainWindowController():
         
     def show(self):
         self.view.show()
+        self.view.raise_()
         
     def hide(self):
         self.view.hide()

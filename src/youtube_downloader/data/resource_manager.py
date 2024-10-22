@@ -29,28 +29,28 @@ class ResourceManager():
 
         # Initialize binary loader
         self.binary_loader = BinaryLoader(self.log_manager)
-        self.progress_hook(17, f"Loading ffmpeg binary...{17}%", 0.5)
+        self.progress_hook(170, f"Loading ffmpeg binary...{17}%", 0.5)
 
         # Initialize config loader
         self.config_loader = ConfigLoader(self.log_manager)
-        self.progress_hook(34, f"Loading config...{34}%")
+        self.progress_hook(340, f"Loading config...{34}%")
 
         # Initialize font loader
         self.font_loader = FontLoader(self.config_loader, self.log_manager)
-        self.progress_hook(51, f"Loading fonts...{51}%")
+        self.progress_hook(510, f"Loading fonts...{51}%")
 
         # Initialize style loader
         self.style_loader = StyleLoader(self.config_loader, self.log_manager)
-        self.progress_hook(68, f"Loading styles...{68}%")
+        self.progress_hook(680, f"Loading styles...{68}%")
 
         # Initialize locale loader
         self.locale_loader = LocaleLoader(self.config_loader, self.log_manager)
-        self.progress_hook(85, f"Loading locales...{85}%")
+        self.progress_hook(850, f"Loading locales...{85}%")
         
         # Initialize media loader
         self.media_loader = MediaLoader(self.log_manager)
-        self.progress_hook(99, f"Loading media...{99}%", 0.8)
+        self.progress_hook(990, f"Loading media...{99}%", 0.8)
 
-        self.progress_hook(100, f"Completed {100}%", 0.5)
+        self.progress_hook(1000, f"Completed {100}%", 0.5)
 
         self.logger.info("Resource manager service started")

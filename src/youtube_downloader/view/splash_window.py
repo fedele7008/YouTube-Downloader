@@ -11,7 +11,7 @@ import os, time
 
 from PySide6.QtWidgets import QSplashScreen, QProgressBar, QLabel, QApplication
 from PySide6.QtGui import QPixmap
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QPropertyAnimation, QTimer
 
 from youtube_downloader.util.path import get_media_path
 from youtube_downloader.util.gui import center_widget_on_screen
@@ -33,6 +33,8 @@ class SplashScreen(QSplashScreen):
         self.setEnabled(False)
         center_widget_on_screen(self)
 
+        self.animation = None
+
         self.progress_bar = QProgressBar(self)
         progress_bar_height = 5
         self.progress_bar.setGeometry(0, height - progress_bar_height, width, progress_bar_height)
@@ -44,9 +46,11 @@ class SplashScreen(QSplashScreen):
             }
             QProgressBar::chunk {
                 background-color: #30B32D;
+                border-top-right-radius: 2px;
+                border-bottom-right-radius: 2px;
             }
         """)
-        self.progress_bar.setMaximum(100)
+        self.progress_bar.setMaximum(1000)
         self.progress_bar.setValue(0)
         self.progress_bar.setTextVisible(False)
 
@@ -62,8 +66,8 @@ class SplashScreen(QSplashScreen):
         self.app.processEvents()
 
     def update_progress(self, value: int, message: str, sleep_time: float = 0.2) -> None:
-        if value > 100:
-            value = 100
+        if value > self.progress_bar.maximum():
+            value = self.progress_bar.maximum()
         elif value < 0:
             value = 0
         self.progress_bar.setValue(value)
