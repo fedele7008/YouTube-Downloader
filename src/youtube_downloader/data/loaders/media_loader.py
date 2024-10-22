@@ -43,7 +43,7 @@ class MediaLoader:
             case "Windows":
                 icon_file = "YoutubeDownloader.ico"
             case _:
-                icon_file = "YoutubeDownloader.jpg"
+                icon_file = "YoutubeDownloader.png"
         icon_path = os.path.join(get_icon_path(), icon_file)
         if not os.path.exists(icon_path):
             err_str = f"Icon file not found at {icon_path}"
