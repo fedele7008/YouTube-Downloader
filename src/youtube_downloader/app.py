@@ -11,6 +11,7 @@ import sys, logging, os
 
 from PySide6.QtWidgets import QApplication
 
+import youtube_downloader
 from youtube_downloader.data.resource_manager import ResourceManager
 from youtube_downloader.util.path import get_log_path
 from youtube_downloader.model.application import YouTubeDownloaderModel
@@ -26,6 +27,8 @@ class YouTubeDownloader:
     def __init__(self):
         # Create QApplication instance safely
         self.app = QApplication.instance() if QApplication.instance() else QApplication(sys.argv)
+        self.app.setApplicationName("YouTube Downloader")
+        self.app.setApplicationVersion(f"{youtube_downloader.__version__}")
 
         # Initialize splash screen
         self.splash_screen = SplashScreen()

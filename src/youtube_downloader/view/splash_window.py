@@ -10,10 +10,10 @@ Licensed under the MIT License. See LICENSE file in the project root for more in
 import os, sys
 
 from PySide6.QtWidgets import QSplashScreen, QProgressBar, QLabel, QApplication
-from PySide6.QtGui import QPixmap
+from PySide6.QtGui import QPixmap, QFont
 from PySide6.QtCore import Qt, QPropertyAnimation, QEasingCurve
 
-from youtube_downloader.util.path import get_media_path
+from youtube_downloader.util.path import get_media_path, get_icon_path
 from youtube_downloader.util.gui import center_widget_on_screen
 
 class SplashScreen(QSplashScreen):
@@ -29,6 +29,7 @@ class SplashScreen(QSplashScreen):
         splash_image = splash_image.scaled(width, height, Qt.KeepAspectRatio)
         super().__init__(splash_image)
         self.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint)
+        self.setFixedSize(splash_image.size())
         # Disable the interaction with the splash screen
         self.setEnabled(False)
         center_widget_on_screen(self)
@@ -57,12 +58,40 @@ class SplashScreen(QSplashScreen):
         self.message_label.setStyleSheet("""
             color: #F5F5F5;
             background-color: transparent;
-            font-family: 'Arial';
+            font-family: 'Verdana';
         """)
         self.message_label.resize(190, 20)
         self.message_label.move(width - self.message_label.width() - 10, height - self.message_label.height() - 10)
         self.message_label.setAlignment(Qt.AlignRight)
         self.message_label.setText("Starting...")
+
+        self.app_logo_label = QLabel(self)
+        logo_pixmap = QPixmap(os.path.join(get_icon_path(), "YoutubeDownloader.png"))
+        if logo_pixmap.isNull():
+            raise Exception("Failed to load app logo")
+        
+        logo_size = 64
+        logo_pixmap = logo_pixmap.scaled(logo_size, logo_size, Qt.KeepAspectRatio)
+        
+        self.app_logo_label.setPixmap(logo_pixmap)
+        self.app_logo_label.resize(logo_size, logo_size)        
+        self.app_logo_label.move(10, 10)
+        self.app_logo_label.raise_()
+
+        self.app_title_label = QLabel(self, text=self.app.applicationName())
+        self.app_title_label.setStyleSheet("color: #ea6654;")
+        self.app_title_label.setFont(QFont('Verdana', 28, QFont.Bold))
+        self.app_title_label.adjustSize()
+        self.app_title_label.move(10 + logo_size + 10, 14)
+        self.app_title_label.raise_()
+
+        self.app_version_label = QLabel(self, text=self.app.applicationVersion())
+        self.app_version_label.setStyleSheet("color: #929cc4;")
+        self.app_version_label.setFont(QFont('Verdana', 14))
+        self.app_version_label.adjustSize()
+        self.app_version_label.move(self.app_title_label.x(), self.app_title_label.y() + self.app_title_label.height())
+        self.app_version_label.raise_()
+
         self.app.processEvents()
 
         self.animation = None
