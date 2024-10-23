@@ -45,6 +45,14 @@ QPushButton[class="primary"] {
     background-color: ${primary-color};
 }
 
+QPushButton[class="primary"]:hover {
+    background-color: ${primary-hover-color};
+}
+
+QPushButton[class="primary"]:pressed {
+    background-color: ${primary-pressed-color};
+}
+
 QLabel[class="input-label"] {
     padding: 3px;
     padding-right: 0px;
