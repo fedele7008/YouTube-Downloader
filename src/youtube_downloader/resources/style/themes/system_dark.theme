@@ -34,13 +34,38 @@ author: John Yoon
 version: 2.1.0
 
 [THEME VARIABLES]
-theme-white: #F0F0F0
-theme-black: #4D4D4D
+theme-dark-grey: #444444
+theme-fade: #F0F0F0
+theme-darker-grey: #333333
 theme-green: #4CAF50
+theme-green-dark: #3D8B40
+theme-green-light: #5BC75F
+theme-blue: #2069E0
+theme-blue-dark: #1B59BE
+theme-blue-light: #2579FF
+theme-red: #D9534F
+theme-red-dark: #B84743
+theme-red-light: #FF5F5B
+theme-yellow: #F4D47C
+theme-yellow-dark: #CFB369
+theme-yellow-light: #FFE58F
 
 [THEME COLORS]
-background-color: ${theme-white}
-foreground-color: ${theme-black}
+background-color: ${theme-dark-grey}
+foreground-color: ${theme-fade}
+light-border-color: ${theme-darker-grey}
+field-background-color: ${theme-darker-grey}
 primary-color: ${theme-green}
+primary-hover-color: ${theme-green-light}
+primary-pressed-color: ${theme-green-dark}
+secondary-color: ${theme-blue}
+secondary-hover-color: ${theme-blue-light}
+secondary-pressed-color: ${theme-blue-dark}
+errorous-color: ${theme-red}
+errorous-hover-color: ${theme-red-light}
+errorous-pressed-color: ${theme-red-dark}
+warning-color: ${theme-yellow}
+warning-hover-color: ${theme-yellow-light}
+warning-pressed-color: ${theme-yellow-dark}
 
 [ADDITIONAL STYLES]

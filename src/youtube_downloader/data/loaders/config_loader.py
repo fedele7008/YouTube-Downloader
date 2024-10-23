@@ -97,7 +97,7 @@ class ConfigLoader():
                 ConfigKeys.SETTINGS_DEBUG_MODE: False,
                 ConfigKeys.SETTINGS_DEBUG_LEVEL: LogLevel.get_default().to_str(),
                 ConfigKeys.SETTINGS_FONT: get_default_system_font(),
-                ConfigKeys.SETTINGS_FONT_SIZE: 12,
+                ConfigKeys.SETTINGS_FONT_SIZE: 14,
                 ConfigKeys.SETTINGS_STANDARD_DOWNLOAD_PATH: get_system_download_path(),
                 ConfigKeys.SETTINGS_LAST_DOWNLOAD_PATH: get_system_download_path(),
                 ConfigKeys.SETTINGS_LOAD_LAST_DOWNLOAD_PATH: True,

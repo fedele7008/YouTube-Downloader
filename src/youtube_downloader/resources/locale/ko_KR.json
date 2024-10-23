@@ -2,6 +2,11 @@
     "name": "한국어",
     "components": {
         "app-title": "유튜브 다운로더",
+        "setup-window-title": "유튜브 다운로더 초기 설정",
+        "setup-window-welcome-label": "환영합니다!",
+        "setup-window-language-label": "언어:",
+        "setup-window-theme-label": "테마:",
+        "setup-window-start-button": "시작하기",
         "url-label": "영상 링크:",
         "url-input-placeholder": "YouTube 비디오 URL을 입력하세요",
         "download-path-label": "다운로드 경로:",

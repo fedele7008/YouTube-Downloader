@@ -9,3 +9,5 @@ src/youtube_downloader/external/**/*
 !src/youtube_downloader/external/README.md
 **/*__pycache__
 **/*.ref.py
+**/*.vscode
+**/*.ref

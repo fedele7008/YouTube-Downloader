@@ -1,92 +1,72 @@
-QLabel[class="input-label"] {
-    qproperty-alignment: "AlignRight | AlignVCenter";
-    padding: 3px;
-    padding-right: 0px;
-    min-width: 90px;
-}
-
-QLabel[class="thumbnail-widget"] {
-    border: 2px solid #DDDDDD;
-    border-radius: 4px;
-}
-
-QLabel[class="error-label"] {
-    color: red;
-}
-
-QMessageBox[class="error-dialog"] QPushButton {
-    padding: 5px 15px;
-}
-
-QMessageBox[class="error-dialog"] #qt_msgbox_label {
-    /* None */
-}
-
-QMessageBox[class="error-dialog"] #qt_msgbox_informativelabel {
-    /* None */
+QMainWindow, QLabel {
+    background-color: ${background-color};
+    color: ${foreground-color};
 }
 
 QLineEdit {
-    padding: 2px;
-}
-
-#search-button {
-    padding-left: 30px;
-    padding-right: 30px;
+    background-color: ${field-background-color};
 }
 
 QPushButton {
     padding: 5px;
+    border: none;
+    border-radius: 4px;
 }
 
-QTabWidget::pane {
-    /* None */
+QComboBox
+{
+    background-color: ${field-background-color};
+    color: ${foreground-color};
+    border: 1px solid ${light-border-color};
+    border-radius: 4px;
+    padding-left: 8px;
+    padding-top: 2px;
+    padding-bottom: 2px;
 }
 
-QTabBar::tab {
-    padding: 6px 12px;
+QComboBox:on {
+    color: grey;
+    background-color: ${light-border-color};
 }
 
-QTabBar::tab:selected {
-    /* None */
+QComboBox:hover {
+    border-width: 2px;
 }
 
-#loading-widget {
-    qproperty-alignment: "AlignHCenter | AlignBottom";
+QComboBox QAbstractItemView {
+    background-color: ${background-color};
+    color: ${foreground-color};
+    border: none;
+    padding: 5px;
+    outline: none;
 }
 
-#loading-label {
-    qproperty-alignment: "AlignHCenter | AlignTop";
+QPushButton[class="primary"] {
+    background-color: ${primary-color};
 }
 
-QTableWidget {
-    margin-top: 0px;
+QLabel[class="input-label"] {
+    padding: 3px;
+    padding-right: 0px;
 }
 
-QTableWidget::item {
-    /* None */
+#setup-welcome-label {
+    font-size: ${font-size:+12}px;
 }
 
-QHeaderView {
-    /* None */
+#setup-config-language-label { 
+    min-width: 120px;
 }
 
-QTableCornerButton::section {
-    /* None */
+#setup-config-language-selector { }
+
+#setup-config-theme-label { 
+    min-width: 120px;
 }
 
-QHeaderView::section {
-    /* None */
-}
+#setup-config-theme-selector { }
 
-/*
-* {
-    border: 2px solid black;
+#setup-start-button {
+    padding-left: 20px;
+    padding-right: 20px;
 }
-
-#test {
-    test-foreground: ${foreground-color};
-    test-background: ${background-color};
-    test-primary: ${primary-color};
-}
-*/

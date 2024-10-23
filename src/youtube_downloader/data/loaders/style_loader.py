@@ -32,7 +32,20 @@ class Theme():
     class ThemeColorsKeys():
         BACKGROUND_COLOR = "background-color"
         FOREGROUND_COLOR = "foreground-color"
+        LIGHT_BORDER_COLOR = "light-border-color"
+        FIELD_BACKGROUND_COLOR = "field-background-color"
         PRIMARY_COLOR = "primary-color"
+        PRIMARY_HOVER_COLOR = "primary-hover-color"
+        PRIMARY_PRESSED_COLOR = "primary-pressed-color"
+        SECONDARY_COLOR = "secondary-color"
+        SECONDARY_HOVER_COLOR = "secondary-hover-color"
+        SECONDARY_PRESSED_COLOR = "secondary-pressed-color"
+        ERROROUS_COLOR = "errorous-color"
+        ERROROUS_HOVER_COLOR = "errorous-hover-color"
+        ERROROUS_PRESSED_COLOR = "errorous-pressed-color"
+        WARNING_COLOR = "warning-color"
+        WARNING_HOVER_COLOR = "warning-hover-color"
+        WARNING_PRESSED_COLOR = "warning-pressed-color"
 
     def __init__(self, theme_path: str, theme_name: str, theme_info: dict, theme_colors: dict | None = None, theme_styles: str | None = None, log_manager: LogManager | None = None):
         self.logger = log_manager.get_logger() if log_manager else get_null_logger()
@@ -291,10 +304,28 @@ class StyleLoader():
         style = f"{font_style}\n{self.global_style}\n\n/* THEME STYLES */\n\n"
         theme = self.themes[self.config_theme]
         style += theme.theme_styles
+
+        # Replace any ${font-size} with config font size
+        font_size = self.config_loader.get_config(key=ConfigKeys.SETTINGS_FONT_SIZE)
+        style = re.sub(r"\${font-size}", str(font_size), style)
+        # Replace any ${font-size:+n} with config font size + n where n is an integer
+        # Replace any ${font-size:-n} with config font size - n where n is an integer
+        def replace_font_size(match):
+            operator = match.group(1)
+            number = int(match.group(2))
+            base_size = int(font_size)
+            if operator == '+':
+                return str(base_size + number)
+            else:
+                return str(base_size - number)
+        style = re.sub(r"\${font-size:(\+|-)(\d+)}", replace_font_size, style)
         return style
 
     def get_all_available_themes(self) -> list[str]:
         return list(self.themes.keys())
+    
+    def get_config_theme(self) -> str:
+        return self.config_theme
     
     def import_theme(self, theme_path: str) -> None:
         # Check if the theme file exists

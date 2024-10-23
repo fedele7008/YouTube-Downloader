@@ -22,6 +22,8 @@ from youtube_downloader.data.log_manager import LogManager
 from youtube_downloader.data.log_handlers.console_handler import ConsoleHandler
 from youtube_downloader.data.log_handlers.log_file_handler import LogFileHandler
 from youtube_downloader.data.log_handlers.gui_handler import QtHandler
+from youtube_downloader.view.setup_window import SetupWindow
+from youtube_downloader.controller.setup_window_controller import SetupWindowController
 
 class YouTubeDownloader:
     def __init__(self):
@@ -29,6 +31,7 @@ class YouTubeDownloader:
         self.app = QApplication.instance() if QApplication.instance() else QApplication(sys.argv)
         self.app.setApplicationName("YouTube Downloader")
         self.app.setApplicationVersion(f"{youtube_downloader.__version__}")
+        self.app.setStyle('Fusion')
 
         # Initialize splash screen
         self.splash_screen = SplashScreen()
@@ -49,12 +52,9 @@ class YouTubeDownloader:
 
         # Initialize resource manager
         self.resource_manager = ResourceManager(self.log_manager, self.splash_screen.update_progress)
-        if self.resource_manager.is_first_load():
-            self.logger.info("First config load detected, showing setup screen")
-            # TODO: Show setup screen
 
         # Initialize application model
-        self.app_model = YouTubeDownloaderModel()
+        self.app_model = YouTubeDownloaderModel(self.log_manager, self.resource_manager)
 
         # Initialize application view
         self.app_window = MainWindow(screen=self.screen)
@@ -65,8 +65,16 @@ class YouTubeDownloader:
         # Close splash screen
         self.splash_screen.close()
 
-        # Start application
-        self.app_window_controller.show()
+        if self.resource_manager.is_first_load():
+            # Show setup screen for the first time
+            self.logger.info("First config load detected, showing setup screen")
+            
+            self.setup_window = SetupWindow(screen=self.screen)
+            self.setup_window_controller = SetupWindowController(self.log_manager, self.resource_manager, self.setup_window, self.app_model, self.app_window_controller)
+            self.setup_window_controller.show()
+        else:
+            # Start application normally
+            self.app_window_controller.show()
 
         self.app.setWindowIcon(self.resource_manager.media_loader.get_icon())
         self.logger.info("YouTube Downloader Service started")

@@ -56,3 +56,11 @@ class LocaleLoader():
     
     def get_all_available_locales(self) -> list[Locale]:
         return list(self.locales.keys())
+    
+    def get_config_locale(self) -> Locale:
+        return self.config_locale
+    
+    def set_config_locale(self, locale: Locale) -> None:
+        if self.config_locale != locale:
+            self.config_locale = locale
+            self.config_loader.save_config_key(key=ConfigKeys.SETTINGS_LOCALE, value=self.config_locale.to_str())

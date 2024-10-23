@@ -2,6 +2,11 @@
     "name": "English",
     "components": {
         "app-title": "YouTube Downloader",
+        "setup-window-title": "YouTube Downloader Initial Setup",
+        "setup-window-welcome-label": "Welcome!",
+        "setup-window-language-label": "Language:",
+        "setup-window-theme-label": "Theme:",
+        "setup-window-start-button": "Start",
         "url-label": "Video URL:",
         "url-input-placeholder": "Enter YouTube video URL",
         "download-path-label": "Download Directory:",

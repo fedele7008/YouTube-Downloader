@@ -16,3 +16,11 @@ class Locale(BaseEnum):
     @classmethod
     def get_default(cls):
         return cls.en_US
+
+class LocaleKeys:
+    APP_NAME = "app-title"
+    SETUP_WINDOW_TITLE = "setup-window-title"
+    SETUP_WINDOW_WELCOME_LABEL = "setup-window-welcome-label"
+    SETUP_WINDOW_LANGUAGE_LABEL = "setup-window-language-label"
+    SETUP_WINDOW_THEME_LABEL = "setup-window-theme-label"
+    SETUP_WINDOW_START_BUTTON = "setup-window-start-button"
