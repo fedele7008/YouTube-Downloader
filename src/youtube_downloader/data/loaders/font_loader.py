@@ -17,6 +17,8 @@ from youtube_downloader.data.log_manager import LogManager, get_null_logger
 from youtube_downloader.data.loaders.config_loader import ConfigLoader, ConfigKeys
 from youtube_downloader.util.path import get_font_path, recursive_find
 
+PREFERRED_FONT_FAMILY = "NanumGothic"
+
 class FontLoader():
     def __init__(self, config_loader: ConfigLoader, log_manager: LogManager | None = None):
         self.log_manager = log_manager
@@ -38,6 +40,9 @@ class FontLoader():
             self.logger.warning(f"Invalid font family: {self.config_font}. Using default system font: {get_default_system_font()}")
             self.change_config_font(get_default_system_font())
 
+        if self.config_loader.get_is_first_load():
+            if self.validate_font_family(PREFERRED_FONT_FAMILY):
+                self.change_config_font(PREFERRED_FONT_FAMILY)
         self.logger.debug(f"Font Loader initialized with config font: {self.config_font}")
 
     def register_font(self, font_path: str):
