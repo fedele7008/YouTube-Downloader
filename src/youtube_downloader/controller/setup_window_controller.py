@@ -33,6 +33,8 @@ class SetupWindowController():
         self.model: YouTubeDownloaderModel = model
         self.main_controller: MainWindowController = main_controller
 
+        self.locale_converter_map = {}
+
         self.config_ui()
         self.bind_model()
         self.refresh_ui()
@@ -50,7 +52,10 @@ class SetupWindowController():
         
     def refresh_ui(self):
         locale_list = self.model.get_locale_list()
-        self.view.setup_config_language_selector.addItems([locale.to_str() for locale in locale_list])
+        language_list = [self.resource_manager.locale_loader.get_locale(locale)["name"] for locale in locale_list]
+        for language, locale in zip(language_list, locale_list):
+            self.locale_converter_map[language] = locale
+        self.view.setup_config_language_selector.addItems(language_list)
         
         theme_list = self.model.get_theme_list()
         self.view.setup_config_theme_selector.addItems(theme_list)
@@ -68,21 +73,23 @@ class SetupWindowController():
     @Slot()
     @block_signal(lambda self: self.view)
     def on_locale_changed(self, locale: Locale) -> None:
-        locale_map = self.resource_manager.locale_loader.get_locale(locale)["components"]
+        locale_json = self.resource_manager.locale_loader.get_locale(locale)
+        locale_name = locale_json["name"]
+        locale_map = locale_json["components"]
         self.view.setWindowTitle(locale_map[LocaleKeys.SETUP_WINDOW_TITLE])
         self.view.setup_welcome_label.setText(locale_map[LocaleKeys.SETUP_WINDOW_WELCOME_LABEL])
         self.view.setup_config_language_label.setText(locale_map[LocaleKeys.SETUP_WINDOW_LANGUAGE_LABEL])
         self.view.setup_config_theme_label.setText(locale_map[LocaleKeys.SETUP_WINDOW_THEME_LABEL])
         self.view.setup_start_button.setText(locale_map[LocaleKeys.SETUP_WINDOW_START_BUTTON])
-        self.view.setup_config_language_selector.setCurrentText(self.model.get_locale().to_str())
+        self.view.setup_config_language_selector.setCurrentText(locale_name)
 
     @Slot()
     def on_theme_selected(self, theme: str) -> None:
         self.model.set_theme(theme)
 
     @Slot()
-    def on_locale_selected(self, locale: str) -> None:
-        locale_enum = Locale.parse_str(locale)
+    def on_locale_selected(self, language: str) -> None:
+        locale_enum = self.locale_converter_map[language]
         self.model.set_locale(locale_enum)
 
     @Slot()
