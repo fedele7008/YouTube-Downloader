@@ -1,0 +1,81 @@
+QMainWindow, QLabel {
+    background-color: ${background-color};
+    color: ${foreground-color};
+}
+
+QLineEdit {
+    background-color: ${field-background-color};
+}
+
+QPushButton {
+    padding: 5px;
+    border: none;
+    border-radius: 4px;
+    color: ${foreground-color};
+}
+
+QComboBox
+{
+    background-color: ${field-background-color};
+    color: ${foreground-color};
+    border: 1px solid ${light-border-color};
+    border-radius: 4px;
+    padding-left: 8px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+}
+
+QComboBox:on {
+    color: grey;
+    background-color: ${light-border-color};
+}
+
+QComboBox:hover {
+    border-width: 2px;
+}
+
+QComboBox QAbstractItemView {
+    background-color: ${background-color};
+    color: ${foreground-color};
+    border: none;
+    padding: 5px;
+    outline: none;
+}
+
+QPushButton[class="primary"] {
+    background-color: ${primary-color};
+}
+
+QPushButton[class="primary"]:hover {
+    background-color: ${primary-hover-color};
+}
+
+QPushButton[class="primary"]:pressed {
+    background-color: ${primary-pressed-color};
+}
+
+QLabel[class="input-label"] {
+    padding: 3px;
+    padding-right: 0px;
+}
+
+#setup-welcome-label {
+    font-size: ${font-size:+12}px;
+}
+
+#setup-config-language-label { 
+    min-width: 120px;
+}
+
+#setup-config-language-selector { }
+
+#setup-config-theme-label { 
+    min-width: 120px;
+}
+
+#setup-config-theme-selector { }
+
+#setup-start-button {
+    padding-left: 20px;
+    padding-right: 20px;
+}

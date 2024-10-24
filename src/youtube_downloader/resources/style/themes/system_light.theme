@@ -1,0 +1,83 @@
+// Copyright (c) 2024 John Yoon. All rights reserved.
+// Licensed under the MIT License. See LICENSE file in the project root for more information.
+//
+// This is a theme file for YouTube Downloader Application.
+//
+// [THEME INFO]
+//     contains metadata about the theme.
+// [THEME VARIABLES]
+//     contains variables that can be used in this theme file only.
+//     these variables will be substituted in the theme colors and
+//     additional styles. Use ${variable} to refer to the variable.
+// [THEME COLORS]
+//     contains color variables that can be used in the theme.
+//     these variables are used in both core theme of the
+//     application and the additional styles, so DO NOT
+//     MODIFY THE NAME OF THESE VARIABLES.
+//
+//     Their values can be modified as theme colors.
+//
+//     Use ${variable} to refer to the variable.
+// [ADDITIONAL STYLES]
+//     contains additional styles that can be used in the theme.
+//
+//     Use ${variable} to refer to the variable defined in theme
+//     variables and theme colors sections.
+//
+//     This section follows qss syntax (https://doc.qt.io/qt-6/stylesheet-syntax.html)
+//     and will have highest priority over any other styles defined
+//     in the system (including the core styles).
+
+[THEME INFO]
+name: system_light
+author: John Yoon
+version: 2.1.0
+
+[THEME VARIABLES]
+theme-white: #FFFFFF
+theme-white-dark: #D9D9D9
+theme-white-light: #FFFFFF
+
+theme-fade: #D7D7D7
+theme-fade-dark: #CCCCCC
+theme-fade-light: #FFFFFF
+
+theme-black: #4D4D4D
+theme-black-dark: #414141
+theme-black-light: #595959
+
+theme-green: #4CAF50
+theme-green-dark: #409444
+theme-green-light: #58CA5C
+
+theme-blue: #0275D8
+theme-blue-dark: #0263B8
+theme-blue-light: #0287F8
+
+theme-red: #D9534F
+theme-red-dark: #B84743
+theme-red-light: #FD5F5B
+
+theme-yellow: #F0AD4E
+theme-yellow-dark: #CC9342
+theme-yellow-light: #FFC75A
+
+[THEME COLORS]
+background-color: ${theme-fade}
+foreground-color: ${theme-black}
+light-border-color: ${theme-fade-dark}
+field-background-color: ${theme-white}
+primary-color: ${theme-green}
+primary-hover-color: ${theme-green-light}
+primary-pressed-color: ${theme-green-dark}
+secondary-color: ${theme-blue}
+secondary-hover-color: ${theme-blue-light}
+secondary-pressed-color: ${theme-blue-dark}
+errorous-color: ${theme-red}
+errorous-hover-color: ${theme-red-light}
+errorous-pressed-color: ${theme-red-dark}
+warning-color: ${theme-yellow}
+warning-hover-color: ${theme-yellow-light}
+warning-pressed-color: ${theme-yellow-dark}
+
+[ADDITIONAL STYLES]
