@@ -1,6 +1,6 @@
 QMainWindow, QLabel {
-    background-color: ${background-color};
-    color: ${foreground-color};
+    background-color: ${base-background-color};
+    color: ${base-foreground-color};
 }
 
 QLineEdit {
@@ -11,14 +11,14 @@ QPushButton {
     padding: 5px;
     border: none;
     border-radius: 4px;
-    color: ${foreground-color};
+    color: ${base-foreground-color};
 }
 
 QComboBox
 {
     background-color: ${field-background-color};
-    color: ${foreground-color};
-    border: 1px solid ${light-border-color};
+    color: ${base-foreground-color};
+    border: 1px solid ${border-color};
     border-radius: 4px;
     padding-left: 8px;
     padding-top: 2px;
@@ -27,7 +27,7 @@ QComboBox
 
 QComboBox:on {
     color: grey;
-    background-color: ${light-border-color};
+    background-color: ${border-color};
 }
 
 QComboBox:hover {
@@ -35,8 +35,8 @@ QComboBox:hover {
 }
 
 QComboBox QAbstractItemView {
-    background-color: ${background-color};
-    color: ${foreground-color};
+    background-color: ${base-background-color};
+    color: ${base-foreground-color};
     border: none;
     padding: 5px;
     outline: none;
@@ -44,6 +44,7 @@ QComboBox QAbstractItemView {
 
 QPushButton[class="primary"] {
     background-color: ${primary-color};
+    color: ${primary-text-color};
 }
 
 QPushButton[class="primary"]:hover {

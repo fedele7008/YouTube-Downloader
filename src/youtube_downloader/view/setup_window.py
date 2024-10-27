@@ -39,11 +39,13 @@ class SetupWindow(QMainWindow):
         self.setup_config_language_label.setProperty("class", "input-label")
         self.setup_config_language_selector = QComboBox()
         self.setup_config_language_selector.setObjectName("setup-config-language-selector")
+        self.setup_config_language_selector.setProperty("class", "combo-box")
         self.setup_config_theme_label = QLabel()
         self.setup_config_theme_label.setObjectName("setup-config-theme-label")
         self.setup_config_theme_label.setProperty("class", "input-label")
         self.setup_config_theme_selector = QComboBox()
         self.setup_config_theme_selector.setObjectName("setup-config-theme-selector")
+        self.setup_config_theme_selector.setProperty("class", "combo-box")
 
         self.setup_config_layout.addWidget(self.setup_config_language_label, 0, 0)
         self.setup_config_layout.addWidget(self.setup_config_language_selector, 0, 1)

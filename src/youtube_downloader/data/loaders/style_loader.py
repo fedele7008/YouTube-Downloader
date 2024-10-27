@@ -13,7 +13,8 @@ from typing import Self
 import youtube_downloader
 from youtube_downloader.data.loaders.config_loader import ConfigLoader, ConfigKeys
 from youtube_downloader.data.log_manager import LogManager, get_null_logger
-from youtube_downloader.util.path import get_style_path, get_resource_theme_path, get_theme_path, flat_find
+from youtube_downloader.util.path import (get_style_path, get_resource_theme_path, get_theme_path,
+                                          get_resource_path, flat_find)
 from youtube_downloader.data.loaders.common import DEFAULT_THEME_NAME
 
 class Theme():
@@ -30,22 +31,23 @@ class Theme():
         VERSION = "version"
 
     class ThemeColorsKeys():
-        BACKGROUND_COLOR = "background-color"
-        FOREGROUND_COLOR = "foreground-color"
-        LIGHT_BORDER_COLOR = "light-border-color"
-        FIELD_BACKGROUND_COLOR = "field-background-color"
         PRIMARY_COLOR = "primary-color"
         PRIMARY_HOVER_COLOR = "primary-hover-color"
         PRIMARY_PRESSED_COLOR = "primary-pressed-color"
+        PRIMARY_TEXT_COLOR = "primary-text-color"
         SECONDARY_COLOR = "secondary-color"
         SECONDARY_HOVER_COLOR = "secondary-hover-color"
         SECONDARY_PRESSED_COLOR = "secondary-pressed-color"
-        ERROROUS_COLOR = "errorous-color"
-        ERROROUS_HOVER_COLOR = "errorous-hover-color"
-        ERROROUS_PRESSED_COLOR = "errorous-pressed-color"
-        WARNING_COLOR = "warning-color"
-        WARNING_HOVER_COLOR = "warning-hover-color"
-        WARNING_PRESSED_COLOR = "warning-pressed-color"
+        SECONDARY_TEXT_COLOR = "secondary-text-color"
+        ACCENT_COLOR = "accent-color"
+        ACCENT_HOVER_COLOR = "accent-hover-color"
+        ACCENT_PRESSED_COLOR = "accent-pressed-color"
+        ACCENT_TEXT_COLOR = "accent-text-color"
+        BASE_BACKGROUND_COLOR = "base-background-color"
+        BASE_FOREGROUND_COLOR = "base-foreground-color"
+        FIELD_BACKGROUND_COLOR = "field-background-color"
+        BORDER_COLOR = "border-color"
+        PLACEHOLDER_TEXT_COLOR = "placeholder-text-color"
 
     def __init__(self, theme_path: str, theme_name: str, theme_info: dict, theme_colors: dict | None = None, theme_styles: str | None = None, log_manager: LogManager | None = None):
         self.logger = log_manager.get_logger() if log_manager else get_null_logger()
@@ -319,6 +321,13 @@ class StyleLoader():
             else:
                 return str(base_size - number)
         style = re.sub(r"\${font-size:(\+|-)(\d+)}", replace_font_size, style)
+
+        # Replace any ${resource:path/to/resource} with the actual resource path
+        def replace_resource(match):
+            resource_path = match.group(1)
+            return os.path.join(*[get_resource_path()] + resource_path.split('/'))
+        style = re.sub(r"\${resource:([^}]+)}", replace_resource, style)
+
         return style
 
     def get_all_available_themes(self) -> list[str]:
