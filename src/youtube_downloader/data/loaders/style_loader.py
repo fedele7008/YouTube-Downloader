@@ -327,7 +327,7 @@ class StyleLoader():
             resource_path = match.group(1)
             return os.path.join(*[get_resource_path()] + resource_path.split('/'))
         style = re.sub(r"\${resource:([^}]+)}", replace_resource, style)
-
+        self.logger.debug(f"Style: \n{style}")
         return style
 
     def get_all_available_themes(self) -> list[str]:
