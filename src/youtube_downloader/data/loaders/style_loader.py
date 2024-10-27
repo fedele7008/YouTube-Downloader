@@ -7,7 +7,7 @@ Copyright (c) 2024 John Yoon. All rights reserved.
 Licensed under the MIT License. See LICENSE file in the project root for more information.
 """
 
-import os, re, shutil, textwrap
+import os, re, shutil, textwrap, platform
 from typing import Self
 
 import youtube_downloader
@@ -325,7 +325,15 @@ class StyleLoader():
         # Replace any ${resource:path/to/resource} with the actual resource path
         def replace_resource(match):
             resource_path = match.group(1)
-            return os.path.join(*[get_resource_path()] + resource_path.split('/'))
+            file_path = os.path.join(*[get_resource_path()] + resource_path.split('/'))
+            match platform.system():
+                case "Darwin":
+                    file_url = f"\"{file_path}\""
+                case "Windows":
+                    file_url = f"\"file:///{file_path.replace('\\', '/')}\""
+                case _:
+                    file_url = file_path
+            return file_url
         style = re.sub(r"\${resource:([^}]+)}", replace_resource, style)
         self.logger.debug(f"Style: \n{style}")
         return style
