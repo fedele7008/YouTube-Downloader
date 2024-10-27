@@ -7,7 +7,7 @@ Copyright (c) 2024 John Yoon. All rights reserved.
 Licensed under the MIT License. See LICENSE file in the project root for more information.
 """
 
-import os, re, shutil, textwrap, platform
+import os, re, shutil, textwrap
 from typing import Self
 
 import youtube_downloader
@@ -326,16 +326,9 @@ class StyleLoader():
         def replace_resource(match):
             resource_path = match.group(1)
             file_path = os.path.join(*[get_resource_path()] + resource_path.split('/'))
-            match platform.system():
-                case "Darwin":
-                    file_url = f"\"{file_path}\""
-                case "Windows":
-                    file_url = f"\"{file_path.replace('\\', '/')}\""
-                case _:
-                    file_url = f"\"{file_path}\""
+            file_url = f"\"{file_path.replace('\\', '/')}\""
             return file_url
         style = re.sub(r"\${resource:([^}]+)}", replace_resource, style)
-        self.logger.debug(f"Style: \n{style}")
         return style
 
     def get_all_available_themes(self) -> list[str]:
