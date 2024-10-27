@@ -330,9 +330,9 @@ class StyleLoader():
                 case "Darwin":
                     file_url = f"\"{file_path}\""
                 case "Windows":
-                    file_url = f"\"file:///{file_path.replace('\\', '/')}\""
+                    file_url = f"\"{file_path.replace('\\', '/')}\""
                 case _:
-                    file_url = file_path
+                    file_url = f"\"{file_path}\""
             return file_url
         style = re.sub(r"\${resource:([^}]+)}", replace_resource, style)
         self.logger.debug(f"Style: \n{style}")
