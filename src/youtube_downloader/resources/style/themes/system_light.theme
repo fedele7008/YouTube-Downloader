@@ -27,6 +27,18 @@
 //     This section follows qss syntax (https://doc.qt.io/qt-6/stylesheet-syntax.html)
 //     and will have highest priority over any other styles defined
 //     in the system (including the core styles).
+//
+// SPECIAL VARIABLES:
+//     Apart from the variables defined in the theme colors section,
+//     There are special variable types and syntaxes that can be used
+//      - ${font-size}
+//            the font size of the application
+//      - ${font-size:+n}
+//            the font size of the application + n where n is an integer
+//      - ${font-size:-n}
+//            the font size of the application - n where n is an integer
+//      - ${resource:path/to/resource}
+//            the path to the resource file
 
 [THEME INFO]
 name: system light
