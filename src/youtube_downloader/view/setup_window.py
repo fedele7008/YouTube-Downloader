@@ -88,4 +88,4 @@ class SetupWindow(QMainWindow):
         self.footer_layout.setContentsMargins(0, 0, 0, 0)
 
         self.setup_main_layout.setSpacing(5)
-        self.setup_config_layout.setSpacing(15)
+        self.setup_config_layout.setSpacing(8)

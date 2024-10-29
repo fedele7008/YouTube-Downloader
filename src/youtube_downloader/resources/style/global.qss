@@ -121,7 +121,7 @@ QComboBox
 {
     background-color: ${field-background-color};
     color: ${base-foreground-color};
-    border: 1px solid ${border-color};
+    border: 1px solid transparent;
     border-radius: 4px;
     padding-left: 8px;
     padding-top: 2px;
@@ -134,7 +134,7 @@ QComboBox:on {
 }
 
 QComboBox:hover {
-    border-width: 2px;
+    border-color: ${border-color};
 }
 
 QComboBox QAbstractItemView {

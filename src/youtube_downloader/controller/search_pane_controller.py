@@ -10,8 +10,9 @@ Licensed under the MIT License. See LICENSE file in the project root for more in
 import os
 from enum import Enum
 
-from PySide6.QtCore import Slot
+from PySide6.QtCore import Slot, Qt
 from PySide6.QtWidgets import QFileDialog
+from PySide6.QtGui import QCursor
 
 from youtube_downloader.data.log_manager import LogManager, get_null_logger
 from youtube_downloader.data.resource_manager import ResourceManager
@@ -47,6 +48,9 @@ class SearchPaneController():
             self.view.dest_input.setText(self.resource_manager.config_loader.get_config(ConfigKeys.SETTINGS_LAST_DOWNLOAD_PATH))
         else:
             self.view.dest_input.setText(self.resource_manager.config_loader.get_config(ConfigKeys.SETTINGS_STANDARD_DOWNLOAD_PATH))
+
+        self.view.browse_button.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+        self.view.search_button.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
 
     def bind_model(self):
         self.model.locale_changed.connect(self.on_locale_changed)
