@@ -20,6 +20,7 @@ class SetupWindow(QMainWindow):
         self.setGeometry(0, 0, 400, 300)
         center_widget_on_screen(self, kwargs.get("screen", None))
         self.init_ui()
+        self.init_style()
         
     def init_ui(self):
         self.setup_main_widget = QWidget()
@@ -71,6 +72,7 @@ class SetupWindow(QMainWindow):
         self.setup_main_layout.addWidget(self.setup_config_widget)
         self.setup_main_layout.addWidget(self.footer_container)
 
+    def init_style(self):
         self.setup_welcome_label.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
         self.setup_config_language_selector.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         self.setup_config_theme_selector.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)

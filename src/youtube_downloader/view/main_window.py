@@ -18,9 +18,13 @@ class MainWindow(QMainWindow):
         self.setGeometry(0, 0, 900, 600)
         center_widget_on_screen(self, kwargs.get("screen", None))
         self.init_ui()
+        self.init_style()
         
     def init_ui(self):
         self.main_widget = QWidget()
         self.main_layout = QHBoxLayout()
         self.main_widget.setLayout(self.main_layout)
         self.setCentralWidget(self.main_widget)
+
+    def init_style(self):
+        pass
