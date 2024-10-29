@@ -64,8 +64,11 @@ class MainWindow(QMainWindow):
         self.log_widget.setObjectName("log-widget")
 
         self.splitter.setChildrenCollapsible(False)
-        self.splitter.setHandleWidth(10)
+        self.splitter.setHandleWidth(8)
 
         self.log_widget.setReadOnly(True)
         self.log_widget.setLineWrapMode(QTextEdit.LineWrapMode.NoWrap)
         
+        self.content_widget.setContentsMargins(0, 0, 0, 0)
+        self.main_layout.setContentsMargins(0, 0, 0, 0)
+        self.main_layout.setSpacing(5)

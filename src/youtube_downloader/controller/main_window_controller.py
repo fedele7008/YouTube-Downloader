@@ -24,6 +24,7 @@ from youtube_downloader.view.license_dialog import LicenseDialog
 from youtube_downloader.data.log_handlers.gui_handler import QtHandler
 from youtube_downloader.data.loaders.config_loader import ConfigKeys
 from youtube_downloader.data.types.log_levels import LogLevel
+from youtube_downloader.controller.search_pane_controller import SearchPaneController
 
 class MainWindowController():
     def __init__(self, log_manager: LogManager | None, resource_manager: ResourceManager, view: MainWindow, model: YouTubeDownloaderModel):
@@ -33,6 +34,8 @@ class MainWindowController():
 
         self.view: MainWindow = view
         self.model: YouTubeDownloaderModel = model
+
+        self.search_pane_controller: SearchPaneController = SearchPaneController(self.log_manager, self.resource_manager, self.view.search_pane, self.model)
 
         self.config_ui()
         self.bind_model()

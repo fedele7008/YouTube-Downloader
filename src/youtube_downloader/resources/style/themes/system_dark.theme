@@ -55,6 +55,11 @@ theme-dark-red: #E04848
 theme-blue: #2196F3
 theme-light-blue: #42A5F5
 theme-dark-blue: #1976D2
+theme-neutral-gray-1: #757575 // 117
+theme-neutral-gray-2: #616161 // 97
+theme-neutral-gray-3: #525252 // 82
+theme-neutral-gray-4: #444444 // 68
+theme-disabled-gray: #9E9E9E // 158
 theme-fade-1: #FFFFFF // 255
 theme-fade-2: #E0E0E0 // 224
 theme-fade-3: #D1D1D1 // 209
@@ -79,6 +84,12 @@ accent-color: ${theme-red}
 accent-hover-color: ${theme-light-red}
 accent-pressed-color: ${theme-dark-red}
 accent-text-color: ${theme-fade-1}
+neutral-color: ${theme-neutral-gray-2}
+neutral-hover-color: ${theme-neutral-gray-3}
+neutral-pressed-color: ${theme-neutral-gray-4}
+neutral-text-color: ${theme-fade-1}
+scroll-bar-color: ${theme-neutral-gray-1}
+disabled-color: ${theme-disabled-gray}
 base-background-color: ${theme-dark-2}
 base-foreground-color: ${theme-fade-3}
 field-background-color: ${theme-dark-1}

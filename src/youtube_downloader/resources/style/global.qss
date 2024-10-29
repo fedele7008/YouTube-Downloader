@@ -3,9 +3,62 @@ QMainWindow, QLabel {
     color: ${base-foreground-color};
 }
 
-* {
+QScrollBar:vertical {
+    border: 1px solid transparent;
+    background: transparent;
+    width:10px;
+    margin: 0px 0px 0px 0px;
+}
 
-    border: 1px solid red;
+QScrollBar::handle:vertical {
+    background: ${scroll-bar-color};
+    min-height: 0px;
+    border-radius: 4px;
+}
+
+QScrollBar::add-line:vertical {
+    background: transparent;
+    subcontrol-position: bottom;
+    subcontrol-origin: margin;
+    height: 0px;
+}
+
+QScrollBar::sub-line:vertical {
+    background: transparent;
+    subcontrol-position: top;
+    subcontrol-origin: margin;
+    height: 0px;
+}
+
+QScrollBar:horizontal {
+    border: 1px solid transparent;
+    background: transparent;
+    height:10px;
+    margin: 0px 0px 0px 0px;
+}
+
+QScrollBar::handle:horizontal {
+    background: ${scroll-bar-color};
+    min-width: 0px;
+    border-radius: 4px;
+}
+
+QScrollBar::add-line:horizontal {
+    background: transparent;
+    subcontrol-position: right;
+    subcontrol-origin: margin;
+    width: 0px;
+}
+
+QScrollBar::sub-line:horizontal {
+    background: transparent;
+    subcontrol-position: left;
+    subcontrol-origin: margin;
+    width: 0px;
+}
+
+QAbstractScrollArea::corner {
+    background: transparent;
 }
 
 QMenuBar {
@@ -54,6 +107,7 @@ QMenu::item:selected {
 
 QLineEdit {
     background-color: ${field-background-color};
+    color: ${base-foreground-color};
 }
 
 QPushButton {
@@ -104,9 +158,34 @@ QPushButton[class="primary"]:pressed {
     background-color: ${primary-pressed-color};
 }
 
+QPushButton[class="primary"]:disabled {
+    background-color: ${disabled-color};
+}
+
+QPushButton[class="neutral"] {
+    background-color: ${neutral-color};
+    color: ${neutral-text-color};
+}
+
+QPushButton[class="neutral"]:hover {
+    background-color: ${neutral-hover-color};
+}
+
+QPushButton[class="neutral"]:pressed {
+    background-color: ${neutral-pressed-color};
+}
+
+QPushButton[class="neutral"]:disabled {
+    background-color: ${disabled-color};
+}
+
 QLabel[class="input-label"] {
     padding: 3px;
     padding-right: 0px;
+}
+
+QLineEdit[class="input-field"] {
+    padding: 2px;
 }
 
 #content-widget {
@@ -132,4 +211,25 @@ QLabel[class="input-label"] {
 #setup-start-button {
     padding-left: 20px;
     padding-right: 20px;
+}
+
+#search-pane-input-error-label {
+    color: ${accent-color};
+    font-size: ${font-size:-2}px;
+}
+
+#search-pane-search-button {
+    padding-left: 20px;
+    padding-right: 20px;
+    margin-right: 0px;
+}
+
+#log-widget {
+    background-color: ${base-background-color};
+    color: ${base-foreground-color};
+    padding: 2px;
+    margin: 10px;
+    margin-left: 3px;
+    border: 1px solid ${border-color};
+    border-radius: 4px;
 }

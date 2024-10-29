@@ -35,3 +35,13 @@ class LocaleKeys:
     SETUP_WINDOW_LANGUAGE_LABEL = "setup-window-language-label"
     SETUP_WINDOW_THEME_LABEL = "setup-window-theme-label"
     SETUP_WINDOW_START_BUTTON = "setup-window-start-button"
+    SEARCH_PANE_URL_LABEL = "url-label"
+    SEARCH_PANE_URL_INPUT_PLACEHOLDER = "url-input-placeholder"
+    SEARCH_PANE_DEST_LABEL = "download-path-label"
+    SEARCH_PANE_BROWSE_BUTTON = "browse-button"
+    SEARCH_PANE_BROWSE_DIALOG_TITLE = "browse-dialog-title"
+    SEARCH_PANE_SEARCH_BUTTON = "search-button"
+    SEARCH_PANE_INPUT_ERROR_MESSAGE_EMPTY_DEST = "input-error-message-empty-dest"
+    SEARCH_PANE_INPUT_ERROR_MESSAGE_DEST_DIR_NOT_EXIST = "input-error-message-dest-dir-not-exist"
+    SEARCH_PANE_INPUT_ERROR_MESSAGE_DEST_DIR_NOT_WRITABLE = "input-error-message-dest-dir-not-writable"
+    

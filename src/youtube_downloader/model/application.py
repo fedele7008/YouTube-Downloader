@@ -23,6 +23,7 @@ class YouTubeDownloaderModel(QObject):
         self.logger = self.log_manager.get_logger() if self.log_manager else get_null_logger()
         self.resource_manager: ResourceManager = resource_manager
 
+
     def get_theme_list(self) -> list[str]:
         return self.resource_manager.style_loader.get_all_available_themes()
     
