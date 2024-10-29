@@ -21,6 +21,9 @@ from youtube_downloader.data.types.locale import Locale, LocaleKeys
 from youtube_downloader.view.settings_dialog import SettingsDialog
 from youtube_downloader.view.about_dialog import AboutDialog
 from youtube_downloader.view.license_dialog import LicenseDialog
+from youtube_downloader.data.log_handlers.gui_handler import QtHandler
+from youtube_downloader.data.loaders.config_loader import ConfigKeys
+from youtube_downloader.data.types.log_levels import LogLevel
 
 class MainWindowController():
     def __init__(self, log_manager: LogManager | None, resource_manager: ResourceManager, view: MainWindow, model: YouTubeDownloaderModel):
@@ -62,6 +65,12 @@ class MainWindowController():
     def bind_model(self):
         self.model.theme_changed.connect(self.on_theme_changed)
         self.model.locale_changed.connect(self.on_locale_changed)
+
+        gui_log_level = self.resource_manager.config_loader.get_config(ConfigKeys.SETTINGS_DEBUG_LEVEL)
+        gui_handlers: list[QtHandler] = self.log_manager.get_handlers_filter(QtHandler)
+        for handler in gui_handlers:
+            handler.set_log_level(gui_log_level)
+            handler.bind_signal(self.view.log_widget.append)
 
     def refresh_ui(self):
         self.model.invoke_current_theme_changed()
@@ -135,6 +144,6 @@ class MainWindowController():
         refresh_shortcut.activated.connect(self.debug_refresh_ui)
 
     def debug_refresh_ui(self):
-        self.logger.info("UI refreshed")
+        self.logger.debug("UI refreshed")
         self.resource_manager.style_loader.reload_global_style()
         self.refresh_ui()

@@ -3,6 +3,11 @@ QMainWindow, QLabel {
     color: ${base-foreground-color};
 }
 
+* {
+
+    border: 1px solid red;
+}
+
 QMenuBar {
     background: ${base-background-color};
     border: none;
@@ -102,6 +107,10 @@ QPushButton[class="primary"]:pressed {
 QLabel[class="input-label"] {
     padding: 3px;
     padding-right: 0px;
+}
+
+#content-widget {
+    margin: 0px;
 }
 
 #setup-welcome-label {

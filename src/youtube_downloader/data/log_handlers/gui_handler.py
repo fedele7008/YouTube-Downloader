@@ -13,6 +13,7 @@ from typing import Callable
 from PySide6.QtCore import QObject, Signal
 
 from youtube_downloader.data.abstracts.log_handler import LogHandler
+from youtube_downloader.data.types.log_levels import LogLevel
 from youtube_downloader.data.log_handlers.common import BRIEF_FORMAT, BRIEF_DATETIME_FORMAT
 
 class QtHandler(LogHandler):
@@ -72,6 +73,7 @@ class QtHandler(LogHandler):
         logging.Handler.__init__(self)
         self.set_format(BRIEF_FORMAT, BRIEF_DATETIME_FORMAT)
         self.name = "qt_handler"
+        self.set_log_level(LogLevel.DEBUG)
         self.buffer = []
         self.buffer_lock = threading.Lock()
         self.gui_ready = False
@@ -89,7 +91,7 @@ class QtHandler(LogHandler):
         """
         msg = self.format(record)
         with self.buffer_lock:
-            self.buffer.append((self.level, msg))
+            self.buffer.append((record.levelno, msg))
             if self.gui_ready:
                 self.signal_emitter.log_signal.emit(msg)
 

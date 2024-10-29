@@ -12,6 +12,7 @@ import logging
 from abc import ABC
 
 from youtube_downloader.data.log_handlers.common import DEFAULT_DATETIME_FORMAT
+from youtube_downloader.data.types.log_levels import LogLevel
 
 class LogHandler(logging.Handler, ABC):
     """
@@ -47,4 +48,8 @@ class LogHandler(logging.Handler, ABC):
         Args:
             log_level: The logging level to set (e.g., logging.INFO, logging.DEBUG).
         """
+        if isinstance(log_level, str):
+            log_level = LogLevel.map_to_logging_enum(LogLevel.parse_str(log_level))
+        elif isinstance(log_level, LogLevel):
+            log_level = LogLevel.map_to_logging_enum(log_level)
         self.setLevel(log_level)

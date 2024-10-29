@@ -29,24 +29,15 @@ class SetupWindow(QMainWindow):
         self.setCentralWidget(self.setup_main_widget)
 
         self.setup_welcome_label = QLabel()
-        self.setup_welcome_label.setObjectName("setup-welcome-label")
 
         self.setup_config_widget = QWidget()
         self.setup_config_layout = QGridLayout()
         self.setup_config_widget.setLayout(self.setup_config_layout)
 
         self.setup_config_language_label = QLabel()
-        self.setup_config_language_label.setObjectName("setup-config-language-label")
-        self.setup_config_language_label.setProperty("class", "input-label")
         self.setup_config_language_selector = QComboBox()
-        self.setup_config_language_selector.setObjectName("setup-config-language-selector")
-        self.setup_config_language_selector.setProperty("class", "combo-box")
         self.setup_config_theme_label = QLabel()
-        self.setup_config_theme_label.setObjectName("setup-config-theme-label")
-        self.setup_config_theme_label.setProperty("class", "input-label")
         self.setup_config_theme_selector = QComboBox()
-        self.setup_config_theme_selector.setObjectName("setup-config-theme-selector")
-        self.setup_config_theme_selector.setProperty("class", "combo-box")
 
         self.setup_config_layout.addWidget(self.setup_config_language_label, 0, 0)
         self.setup_config_layout.addWidget(self.setup_config_language_selector, 0, 1)
@@ -61,8 +52,6 @@ class SetupWindow(QMainWindow):
         self.footer_container.setLayout(self.footer_layout)
 
         self.setup_start_button = QPushButton()
-        self.setup_start_button.setObjectName("setup-start-button")
-        self.setup_start_button.setProperty("class", "primary")
 
         self.footer_layout.addSpacerItem(QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum))
         self.footer_layout.addWidget(self.setup_start_button)
@@ -73,6 +62,18 @@ class SetupWindow(QMainWindow):
         self.setup_main_layout.addWidget(self.footer_container)
 
     def init_style(self):
+        self.setup_welcome_label.setObjectName("setup-welcome-label")
+        self.setup_config_language_label.setObjectName("setup-config-language-label")
+        self.setup_config_language_label.setProperty("class", "input-label")
+        self.setup_config_language_selector.setObjectName("setup-config-language-selector")
+        self.setup_config_language_selector.setProperty("class", "combo-box")
+        self.setup_config_theme_label.setObjectName("setup-config-theme-label")
+        self.setup_config_theme_label.setProperty("class", "input-label")
+        self.setup_config_theme_selector.setObjectName("setup-config-theme-selector")
+        self.setup_config_theme_selector.setProperty("class", "combo-box")
+        self.setup_start_button.setObjectName("setup-start-button")
+        self.setup_start_button.setProperty("class", "primary")
+
         self.setup_welcome_label.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
         self.setup_config_language_selector.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         self.setup_config_theme_selector.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
