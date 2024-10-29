@@ -40,7 +40,7 @@ class MainWindowController():
         self.view.setWindowIcon(main_icon)
 
         self.settings_action = QAction(self.view)
-        self.settings_action.setShortcut("Ctrl+,")
+        self.settings_action.setShortcut("Ctrl+P")
         self.settings_action.triggered.connect(self.open_settings_dialog)
         self.view.settings_menu.addAction(self.settings_action)
 

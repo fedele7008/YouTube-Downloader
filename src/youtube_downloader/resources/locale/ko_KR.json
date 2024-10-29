@@ -3,8 +3,8 @@
     "components": {
         "app-title": "유튜브 다운로더",
         "app-menu-settings-title": "설정",
-        "app-menu-settings-general-title": "일반 설정",
-        "app-menu-settings-general-status-tip": "일반 설정창 열기",
+        "app-menu-settings-general-title": "일반",
+        "app-menu-settings-general-status-tip": "일반 설정 열기",
         "app-menu-actions-title": "동작",
         "app-menu-actions-quit-title": "종료",
         "app-menu-actions-quit-status-tip": "유튜브 다운로더 종료",
