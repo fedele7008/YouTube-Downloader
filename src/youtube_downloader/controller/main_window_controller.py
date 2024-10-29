@@ -82,16 +82,21 @@ class MainWindowController():
         # Set menu titles
         self.view.settings_menu.setTitle(locale_map[LocaleKeys.APP_MENU_SETTINGS_TITLE])
         self.view.actions_menu.setTitle(locale_map[LocaleKeys.APP_MENU_ACTIONS_TITLE])
-        self.view.help_menu.setTitle(locale_map[LocaleKeys.APP_MENU_HELP_TITLE])
+        if platform.system() == "Darwin":
+            self.view.help_menu.setTitle("Help")
+        else:
+            self.view.help_menu.setTitle(locale_map[LocaleKeys.APP_MENU_HELP_TITLE])
 
         # Set menu action titles
         if platform.system() == "Darwin":
             self.settings_action.setText("Settings")
+            self.quit_action.setText("Quit")
+            self.about_action.setText("About")
         else:
             self.settings_action.setText(locale_map[LocaleKeys.APP_MENU_SETTINGS_GENERAL_TITLE])
+            self.quit_action.setText(locale_map[LocaleKeys.APP_MENU_ACTIONS_QUIT_TITLE])
+            self.about_action.setText(locale_map[LocaleKeys.APP_MENU_HELP_ABOUT_TITLE])
 
-        self.quit_action.setText(locale_map[LocaleKeys.APP_MENU_ACTIONS_QUIT_TITLE])
-        self.about_action.setText(locale_map[LocaleKeys.APP_MENU_HELP_ABOUT_TITLE])
         self.license_action.setText(locale_map[LocaleKeys.APP_MENU_HELP_LICENSE_TITLE])
 
         # Set menu action status tips
