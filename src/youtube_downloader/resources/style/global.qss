@@ -1,4 +1,4 @@
-QMainWindow, QLabel {
+QMainWindow, QLabel, QMenuBar {
     background-color: ${base-background-color};
     color: ${base-foreground-color};
 }
@@ -40,6 +40,12 @@ QComboBox QAbstractItemView {
     border: none;
     padding: 5px;
     outline: none;
+}
+
+QMenuBar::item {
+    spacing: 10px;
+    background: transparent;
+    font-size: ${font-size:-4}px;
 }
 
 QPushButton[class="primary"] {
