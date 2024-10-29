@@ -2,6 +2,8 @@
     "name": "English",
     "components": {
         "app-title": "YouTube Downloader",
+        "app-menu-settings-title": "Settings",
+        "app-menu-settings-status-tip": "Open settings dialog",
         "setup-window-title": "YouTube Downloader Initial Setup",
         "setup-window-welcome-label": "Welcome!",
         "setup-window-language-label": "Language:",

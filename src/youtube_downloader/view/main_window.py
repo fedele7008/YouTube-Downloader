@@ -9,7 +9,7 @@ Licensed under the MIT License. See LICENSE file in the project root for more in
 
 from typing import Any
 
-from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout
+from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QMenuBar
 from youtube_downloader.util.gui import center_widget_on_screen
 
 class MainWindow(QMainWindow):
@@ -25,6 +25,12 @@ class MainWindow(QMainWindow):
         self.main_layout = QHBoxLayout()
         self.main_widget.setLayout(self.main_layout)
         self.setCentralWidget(self.main_widget)
+
+        self.menu_bar = QMenuBar()
+        self.menu_bar.setObjectName("main-menu-bar")
+        self.setMenuBar(self.menu_bar)
+
+        self.app_menu = self.menu_bar.addMenu("App Menu")
 
     def init_style(self):
         pass

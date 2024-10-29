@@ -2,6 +2,8 @@
     "name": "한국어",
     "components": {
         "app-title": "유튜브 다운로더",
+        "app-menu-settings-title": "설정",
+        "app-menu-settings-status-tip": "설정창 열기",
         "setup-window-title": "유튜브 다운로더 초기 설정",
         "setup-window-welcome-label": "환영합니다!",
         "setup-window-language-label": "언어:",

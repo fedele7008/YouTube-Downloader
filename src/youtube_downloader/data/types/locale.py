@@ -19,6 +19,8 @@ class Locale(BaseEnum):
 
 class LocaleKeys:
     APP_NAME = "app-title"
+    APP_MENU_SETTINGS_TITLE = "app-menu-settings-title"
+    APP_MENU_SETTINGS_STATUS_TIP = "app-menu-settings-status-tip"
     SETUP_WINDOW_TITLE = "setup-window-title"
     SETUP_WINDOW_WELCOME_LABEL = "setup-window-welcome-label"
     SETUP_WINDOW_LANGUAGE_LABEL = "setup-window-language-label"
