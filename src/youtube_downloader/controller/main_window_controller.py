@@ -10,7 +10,7 @@ Licensed under the MIT License. See LICENSE file in the project root for more in
 import platform
 
 from PySide6.QtCore import Slot
-from PySide6.QtGui import QAction
+from PySide6.QtGui import QAction, QShortcut, QKeySequence
 
 from youtube_downloader.model.application import YouTubeDownloaderModel
 from youtube_downloader.view.main_window import MainWindow
@@ -34,6 +34,8 @@ class MainWindowController():
         self.config_ui()
         self.bind_model()
         self.refresh_ui()
+
+        self.register_shortcuts()
 
     def config_ui(self):
         main_icon = self.resource_manager.media_loader.get_icon()
@@ -122,3 +124,12 @@ class MainWindowController():
 
     def close(self):
         self.view.close()
+
+    def register_shortcuts(self):
+        refresh_shortcut = QShortcut(QKeySequence("Ctrl+R"), self.view)
+        refresh_shortcut.activated.connect(self.debug_refresh_ui)
+
+    def debug_refresh_ui(self):
+        self.logger.info("UI refreshed")
+        self.resource_manager.style_loader.reload_global_style()
+        self.refresh_ui()
