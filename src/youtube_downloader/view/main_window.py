@@ -30,7 +30,9 @@ class MainWindow(QMainWindow):
         self.menu_bar.setObjectName("main-menu-bar")
         self.setMenuBar(self.menu_bar)
 
-        self.app_menu = self.menu_bar.addMenu("App Menu")
+        self.settings_menu = self.menu_bar.addMenu(str())
+        self.actions_menu = self.menu_bar.addMenu(str())
+        self.help_menu = self.menu_bar.addMenu(str())
 
     def init_style(self):
         pass
