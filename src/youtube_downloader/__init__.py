@@ -10,6 +10,7 @@ Licensed under the MIT License. See LICENSE file in the project root for more in
 __version__ = "2.1.0"
 __author__ = "John Yoon"
 __email__ = "fedelejohn7008@gmail.com"
+
 license = """MIT License
 
 Copyright (c) 2024 John Yoon

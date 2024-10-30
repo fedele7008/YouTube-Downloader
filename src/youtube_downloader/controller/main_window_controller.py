@@ -23,7 +23,6 @@ from youtube_downloader.view.about_dialog import AboutDialog
 from youtube_downloader.view.license_dialog import LicenseDialog
 from youtube_downloader.data.log_handlers.gui_handler import QtHandler
 from youtube_downloader.data.loaders.config_loader import ConfigKeys
-from youtube_downloader.data.types.log_levels import LogLevel
 from youtube_downloader.controller.search_pane_controller import SearchPaneController
 
 class MainWindowController():
@@ -124,7 +123,7 @@ class MainWindowController():
 
     @Slot()
     def open_about_dialog(self):
-        about_dialog = AboutDialog()
+        about_dialog = AboutDialog(self.view, self.log_manager, self.resource_manager, self.model, screen=self.view.screen())
         about_dialog.exec()
 
     @Slot()

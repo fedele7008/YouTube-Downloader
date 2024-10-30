@@ -26,6 +26,7 @@ class ErrorDialog(QMessageBox):
             self.setInformativeText(informative_message)
         self.setStandardButtons(QMessageBox.StandardButton.NoButton)
         self.okay_button = QPushButton(self)
+        self.okay_button.setProperty("class", "neutral")
         self.okay_button.setObjectName("error-dialog-okay-button")
         self.okay_button.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         if hasattr(parent, "resource_manager") and isinstance(parent.resource_manager, ResourceManager):

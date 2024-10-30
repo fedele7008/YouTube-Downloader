@@ -48,3 +48,6 @@ class LocaleKeys:
     SEARCH_PANE_INPUT_ERROR_PROMPT_TITLE = "input-error-prompt-title"
     SEARCH_PANE_INPUT_ERROR_PROMPT_MESSAGE_EMPTY_URL = "input-error-prompt-message-empty-url"
     SEARCH_PANE_INPUT_ERROR_PROMPT_MESSAGE_INVALID_VIDEO = "input-error-prompt-message-invalid-video"
+    ABOUT_DIALOG_TITLE = "about-dialog-title"
+    CLOSE_BUTTON_TEXT = "close-button-text"
+    ABOUT_DIALOG_DESCRIPTION = "about-dialog-description"

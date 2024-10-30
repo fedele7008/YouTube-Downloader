@@ -1,4 +1,4 @@
-QMainWindow, QLabel {
+QMainWindow, QLabel, QDialog {
     background-color: ${base-background-color};
     color: ${base-foreground-color};
 }
@@ -241,14 +241,23 @@ QLineEdit[class="input-field"] {
 }
 
 #error-dialog-okay-button {
-    background-color: ${primary-color};
-    color: ${primary-text-color};
+    padding-left: 15px;
+    padding-right: 15px;
 }
 
-#error-dialog-okay-button:hover {
-    background-color: ${primary-hover-color};
+#about-dialog-app-name-label {
+    font-size: ${font-size:+12}px;
 }
 
-#error-dialog-okay-button:pressed {
-    background-color: ${primary-pressed-color};
+#about-dialog-app-version-label {
+    font-size: ${font-size:+4}px;
+}
+
+#about-dialog-description-label {
+    margin-top: 12px;
+}
+
+#about-dialog-close-button {
+    padding-left: 20px;
+    padding-right: 20px;
 }
