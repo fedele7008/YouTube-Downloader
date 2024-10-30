@@ -91,6 +91,7 @@ neutral-text-color: ${theme-fade-1}
 scroll-bar-color: ${theme-neutral-gray-1}
 disabled-color: ${theme-disabled-gray}
 base-background-color: ${theme-dark-2}
+background-hover-color: ${theme-dark-3}
 base-foreground-color: ${theme-fade-3}
 field-background-color: ${theme-dark-1}
 border-color: ${theme-dark-4}

@@ -1,4 +1,4 @@
-QMainWindow, QLabel, QDialog {
+QMainWindow, QLabel, QDialog, QListWidget {
     background-color: ${base-background-color};
     color: ${base-foreground-color};
 }
@@ -145,6 +145,32 @@ QComboBox QAbstractItemView {
     outline: none;
 }
 
+QListWidget {
+    border: none;
+}
+
+QListView {
+    outline: none;
+}
+
+QListWidget::item {
+    background: ${base-background-color};
+    color: ${base-foreground-color};
+    padding: 8px;
+    padding-left: 15px;
+}
+
+QListWidget::item:hover {
+    background: ${background-hover-color};
+}
+
+QListWidget::item:selected {
+    background: ${secondary-color};
+    color: ${secondary-text-color};
+    border: none;
+    outline: none;
+}
+
 QTextEdit[class="readonly"] {
     background-color: ${base-background-color};
     color: ${base-foreground-color};
@@ -172,6 +198,40 @@ QPushButton[class="primary"]:disabled {
     background-color: ${disabled-color};
 }
 
+QPushButton[class="secondary"] {
+    background-color: ${secondary-color};
+    color: ${secondary-text-color};
+}
+
+QPushButton[class="secondary"]:hover {
+    background-color: ${secondary-hover-color};
+}
+
+QPushButton[class="secondary"]:pressed {
+    background-color: ${secondary-pressed-color};
+}
+
+QPushButton[class="secondary"]:disabled {
+    background-color: ${disabled-color};
+}
+
+QPushButton[class="accent"] {
+    background-color: ${accent-color};
+    color: ${accent-text-color};
+}
+
+QPushButton[class="accent"]:hover {
+    background-color: ${accent-hover-color};
+}
+
+QPushButton[class="accent"]:pressed {
+    background-color: ${accent-pressed-color};
+}
+
+QPushButton[class="accent"]:disabled {
+    background-color: ${disabled-color};
+}
+
 QPushButton[class="neutral"] {
     background-color: ${neutral-color};
     color: ${neutral-text-color};
@@ -187,6 +247,78 @@ QPushButton[class="neutral"]:pressed {
 
 QPushButton[class="neutral"]:disabled {
     background-color: ${disabled-color};
+}
+
+QPushButton[class="primary-hollow"] {
+    background-color: transparent;
+    border: 1px solid ${primary-color};
+    color: ${base-foreground-color};
+}
+
+QPushButton[class="primary-hollow"]:hover {
+    border-color: ${primary-hover-color};
+}
+
+QPushButton[class="primary-hollow"]:pressed {
+    border-color: ${primary-pressed-color};
+}
+
+QPushButton[class="primary-hollow"]:disabled {
+    border-color: ${disabled-color};
+}
+
+QPushButton[class="secondary-hollow"] {
+    background-color: transparent;
+    border: 1px solid ${secondary-color};
+    color: ${base-foreground-color};
+}
+
+QPushButton[class="secondary-hollow"]:hover {
+    border-color: ${secondary-hover-color};
+}
+
+QPushButton[class="secondary-hollow"]:pressed {
+    border-color: ${secondary-pressed-color};
+}
+
+QPushButton[class="secondary-hollow"]:disabled {
+    border-color: ${disabled-color};
+}
+
+QPushButton[class="accent-hollow"] {
+    background-color: transparent;
+    border: 1px solid ${accent-color};
+    color: ${base-foreground-color};
+}
+
+QPushButton[class="accent-hollow"]:hover {
+    border-color: ${accent-hover-color};
+}
+
+QPushButton[class="accent-hollow"]:pressed {
+    border-color: ${accent-pressed-color};
+}
+
+QPushButton[class="accent-hollow"]:disabled {
+    border-color: ${disabled-color};
+}
+
+QPushButton[class="neutral-hollow"] {
+    background-color: transparent;
+    border: 1px solid ${neutral-color};
+    color: ${base-foreground-color};
+}
+
+QPushButton[class="neutral-hollow"]:hover {
+    border-color: ${neutral-hover-color};
+}
+
+QPushButton[class="neutral-hollow"]:pressed {
+    border-color: ${neutral-pressed-color};
+}
+
+QPushButton[class="neutral-hollow"]:disabled {
+    border-color: ${disabled-color};
 }
 
 QLabel[class="input-label"] {
@@ -269,4 +401,32 @@ QLineEdit[class="input-field"] {
 #license-dialog-close-button {
     padding-left: 20px;
     padding-right: 20px;
+}
+
+#settings-dialog-restore-button {
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+#settings-dialog-cancel-button {
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+#settings-dialog-apply-button {
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+#settings-dialog-save-button {
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+#settings-dialog-footer-widget {
+    border-top: 1px solid ${border-color};
+}
+
+#settings-dialog-settings-list {
+    border-right: 1px solid ${border-color};
 }

@@ -108,8 +108,8 @@ class SearchPaneController():
         if not self.view.url_input.text():
             title = self.resource_manager.locale_loader.get_locale(self.model.get_locale())["components"][LocaleKeys.SEARCH_PANE_INPUT_ERROR_PROMPT_TITLE]
             message = self.resource_manager.locale_loader.get_locale(self.model.get_locale())["components"][LocaleKeys.SEARCH_PANE_INPUT_ERROR_PROMPT_MESSAGE_EMPTY_URL]
-            ErrorDialog.prompt(self.view, title, message)
             self.logger.error(f"Searching for video with empty URL: {self.view.url_input.text()}")
+            ErrorDialog.prompt(self.view, title, message)
             return
 
         self.logger.info(f"Searching for video with URL: {self.view.url_input.text()}")

@@ -35,6 +35,8 @@
         "input-error-prompt-title": "Search Failed",
         "input-error-prompt-message-empty-url": "URL is empty.",
         "input-error-prompt-message-invalid-video": "YouTube video URL is invalid.",
+        "settings-dialog-title": "Settings",
+        "settings-dialog-list": ["General", "Appearance", "Advanced"],
         "loading-label": "Loading video...",
         "video-download-tab": "Video",
         "audio-download-tab": "Audio",

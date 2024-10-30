@@ -50,6 +50,7 @@ class Theme():
         SCROLL_BAR_COLOR = "scroll-bar-color"
         DISABLED_COLOR = "disabled-color"
         BASE_BACKGROUND_COLOR = "base-background-color"
+        BACKGROUND_HOVER_COLOR = "background-hover-color"
         BASE_FOREGROUND_COLOR = "base-foreground-color"
         FIELD_BACKGROUND_COLOR = "field-background-color"
         BORDER_COLOR = "border-color"

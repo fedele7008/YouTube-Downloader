@@ -52,3 +52,5 @@ class LocaleKeys:
     CLOSE_BUTTON_TEXT = "close-button-text"
     ABOUT_DIALOG_DESCRIPTION = "about-dialog-description"
     LICENSE_DIALOG_TITLE = "license-dialog-title"
+    SETTINGS_DIALOG_TITLE = "settings-dialog-title"
+    SETTINGS_DIALOG_LIST = "settings-dialog-list"

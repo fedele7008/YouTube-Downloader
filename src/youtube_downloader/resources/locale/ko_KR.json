@@ -35,6 +35,8 @@
         "input-error-prompt-title": "검색 실패",
         "input-error-prompt-message-empty-url": "검색할 URL이 비어 있습니다.",
         "input-error-prompt-message-invalid-video": "동영상 URL이 유효하지 않습니다.",
+        "settings-dialog-title": "설정",
+        "settings-dialog-list": ["일반", "외형", "고급"],
         "loading-label": "동영상을 불러오는 중...",
         "video-download-tab": "동영상",
         "audio-download-tab": "오디오",

@@ -24,6 +24,7 @@ from youtube_downloader.view.license_dialog import LicenseDialog
 from youtube_downloader.data.log_handlers.gui_handler import QtHandler
 from youtube_downloader.data.loaders.config_loader import ConfigKeys
 from youtube_downloader.controller.search_pane_controller import SearchPaneController
+from youtube_downloader.controller.settings_dialog_controller import SettingsDialogController
 
 class MainWindowController():
     def __init__(self, log_manager: LogManager | None, resource_manager: ResourceManager, view: MainWindow, model: YouTubeDownloaderModel):
@@ -39,7 +40,6 @@ class MainWindowController():
         self.config_ui()
         self.bind_model()
         self.refresh_ui()
-
         self.register_shortcuts()
 
     def config_ui(self):
@@ -118,8 +118,9 @@ class MainWindowController():
     
     @Slot()
     def open_settings_dialog(self):
-        settings_dialog = SettingsDialog()
-        settings_dialog.exec()
+        settings_dialog = SettingsDialog(self.view, screen=self.view.screen())
+        settings_dialog_controller = SettingsDialogController(self.log_manager, self.resource_manager, settings_dialog, self.model)
+        settings_dialog_controller.exec()
 
     @Slot()
     def open_about_dialog(self):
