@@ -21,6 +21,7 @@ from youtube_downloader.view.search_pane import SearchPane
 from youtube_downloader.data.types.locale import Locale, LocaleKeys
 from youtube_downloader.util.decorator import block_signal
 from youtube_downloader.util.path import get_system_download_path
+from youtube_downloader.view.error_dialog import ErrorDialog
 from youtube_downloader.data.loaders.config_loader import ConfigKeys
 
 class SearchPaneController():
@@ -73,6 +74,7 @@ class SearchPaneController():
         self.view.browse_button.setText(locale_map[LocaleKeys.SEARCH_PANE_BROWSE_BUTTON])
         self.view.search_button.setText(locale_map[LocaleKeys.SEARCH_PANE_SEARCH_BUTTON])
         self.dialog_title = locale_map[LocaleKeys.SEARCH_PANE_BROWSE_DIALOG_TITLE]
+        self.on_dest_input_changed()
 
     @Slot()
     def on_dest_input_changed(self) -> None:
@@ -100,8 +102,17 @@ class SearchPaneController():
 
     @Slot()
     def on_search_button_clicked(self) -> None:
-        self.logger.info("Search button clicked")
-        pass
+        if not self.view.search_button.isEnabled():
+            return
+        
+        if not self.view.url_input.text():
+            title = self.resource_manager.locale_loader.get_locale(self.model.get_locale())["components"][LocaleKeys.SEARCH_PANE_INPUT_ERROR_PROMPT_TITLE]
+            message = self.resource_manager.locale_loader.get_locale(self.model.get_locale())["components"][LocaleKeys.SEARCH_PANE_INPUT_ERROR_PROMPT_MESSAGE_EMPTY_URL]
+            ErrorDialog.prompt(self.view, title, message)
+            self.logger.error(f"Searching for video with empty URL: {self.view.url_input.text()}")
+            return
+
+        self.logger.info(f"Searching for video with URL: {self.view.url_input.text()}")
 
     def show_error_label(self, error_type: ErrorType | None) -> None:
         if error_type is None:

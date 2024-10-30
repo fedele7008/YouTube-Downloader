@@ -233,3 +233,22 @@ QLineEdit[class="input-field"] {
     border: 1px solid ${border-color};
     border-radius: 4px;
 }
+
+#error-dialog {
+    background-color: ${base-background-color};
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+#error-dialog-okay-button {
+    background-color: ${primary-color};
+    color: ${primary-text-color};
+}
+
+#error-dialog-okay-button:hover {
+    background-color: ${primary-hover-color};
+}
+
+#error-dialog-okay-button:pressed {
+    background-color: ${primary-pressed-color};
+}

@@ -44,4 +44,7 @@ class LocaleKeys:
     SEARCH_PANE_INPUT_ERROR_MESSAGE_EMPTY_DEST = "input-error-message-empty-dest"
     SEARCH_PANE_INPUT_ERROR_MESSAGE_DEST_DIR_NOT_EXIST = "input-error-message-dest-dir-not-exist"
     SEARCH_PANE_INPUT_ERROR_MESSAGE_DEST_DIR_NOT_WRITABLE = "input-error-message-dest-dir-not-writable"
-    
+    OK_BUTTON_TEXT = "ok-button-text"
+    SEARCH_PANE_INPUT_ERROR_PROMPT_TITLE = "input-error-prompt-title"
+    SEARCH_PANE_INPUT_ERROR_PROMPT_MESSAGE_EMPTY_URL = "input-error-prompt-message-empty-url"
+    SEARCH_PANE_INPUT_ERROR_PROMPT_MESSAGE_INVALID_VIDEO = "input-error-prompt-message-invalid-video"
