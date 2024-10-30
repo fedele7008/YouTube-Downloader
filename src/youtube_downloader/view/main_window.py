@@ -62,7 +62,7 @@ class MainWindow(QMainWindow):
         self.menu_bar.setObjectName("main-menu-bar")
         self.content_widget.setObjectName("content-widget")
         self.log_widget.setObjectName("log-widget")
-
+        self.log_widget.setProperty("class", "readonly")
         self.splitter.setChildrenCollapsible(False)
         self.splitter.setHandleWidth(8)
 

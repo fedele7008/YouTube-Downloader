@@ -145,6 +145,16 @@ QComboBox QAbstractItemView {
     outline: none;
 }
 
+QTextEdit[class="readonly"] {
+    background-color: ${base-background-color};
+    color: ${base-foreground-color};
+    padding: 2px;
+    margin: 10px;
+    margin-left: 3px;
+    border: 1px solid ${border-color};
+    border-radius: 4px;
+}
+
 QPushButton[class="primary"] {
     background-color: ${primary-color};
     color: ${primary-text-color};
@@ -224,16 +234,6 @@ QLineEdit[class="input-field"] {
     margin-right: 0px;
 }
 
-#log-widget {
-    background-color: ${base-background-color};
-    color: ${base-foreground-color};
-    padding: 2px;
-    margin: 10px;
-    margin-left: 3px;
-    border: 1px solid ${border-color};
-    border-radius: 4px;
-}
-
 #error-dialog {
     background-color: ${base-background-color};
     padding-left: 10px;
@@ -258,6 +258,15 @@ QLineEdit[class="input-field"] {
 }
 
 #about-dialog-close-button {
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+#license-dialog-license-label {
+    margin-top: 12px;
+}
+
+#license-dialog-close-button {
     padding-left: 20px;
     padding-right: 20px;
 }

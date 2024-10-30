@@ -128,7 +128,7 @@ class MainWindowController():
 
     @Slot()
     def open_license_dialog(self):
-        license_dialog = LicenseDialog()
+        license_dialog = LicenseDialog(self.view, self.log_manager, self.resource_manager, self.model, screen=self.view.screen())
         license_dialog.exec()
 
     def show(self):
