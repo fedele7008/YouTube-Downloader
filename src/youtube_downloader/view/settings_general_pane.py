@@ -106,6 +106,7 @@ class SettingsGeneralPane(QWidget):
             default_download_path_layout.addWidget(path_input_widget)
             self.default_download_path_error_label = QLabel()
             default_download_path_layout.addWidget(self.default_download_path_error_label)
+            default_download_path_layout.addStretch()
 
             ### ROOT > CONTENT > CONFIG:LOAD-LAST-DOWNLOAD-PATH ###
             self.load_last_download_path_checkbox = QCheckBox()
@@ -169,7 +170,7 @@ class SettingsGeneralPane(QWidget):
         
         for section in self.sections:
             self.main_layout.addWidget(section)
-        self.main_layout.addStretch()
+        self.main_layout.addStretch(10)
 
     def init_style(self):
         self.root_layout.setContentsMargins(0, 0, 0, 0)
