@@ -13,6 +13,7 @@ from youtube_downloader.data.log_manager import LogManager, get_null_logger
 from youtube_downloader.data.resource_manager import ResourceManager
 from youtube_downloader.model.application import YouTubeDownloaderModel
 from youtube_downloader.data.types.locale import Locale
+from youtube_downloader.data.types.log_levels import LogLevel
 
 class SettingsProxyModel(QObject):
     def __init__(self, log_manager: LogManager | None, resource_manager: ResourceManager, service_model: YouTubeDownloaderModel):
@@ -31,6 +32,10 @@ class SettingsProxyModel(QObject):
         self.proxy_theme_list: list[str] = self.service_model.get_theme_list()
         self.proxy_debug_mode: bool = self.service_model.get_debug_mode()
         self.proxy_debug_level: str = self.service_model.get_debug_level()
+        if not LogLevel.validate_str(self.proxy_debug_level):
+            default_log_level = LogLevel.get_default().to_str()
+            self.logger.warning(f"Invalid debug level: {self.proxy_debug_level}. Resetting to default: {default_log_level}.")
+            self.proxy_debug_level = default_log_level
         self.proxy_font: str = self.service_model.get_font()
         self.proxy_font_size: int = self.service_model.get_font_size()
         self.proxy_font_list: list[str] = self.service_model.get_font_list()

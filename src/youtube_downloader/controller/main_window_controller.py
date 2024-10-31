@@ -67,6 +67,8 @@ class MainWindowController():
     def bind_model(self):
         self.model.theme_changed.connect(self.on_theme_changed)
         self.model.locale_changed.connect(self.on_locale_changed)
+        self.model.debug_mode_changed.connect(self.on_debug_mode_changed)
+        self.model.debug_level_changed.connect(self.on_debug_level_changed)
 
         gui_log_level = self.resource_manager.config_loader.get_config(ConfigKeys.SETTINGS_DEBUG_LEVEL)
         gui_handlers: list[QtHandler] = self.log_manager.get_handlers_filter(QtHandler)
@@ -77,6 +79,8 @@ class MainWindowController():
     def refresh_ui(self):
         self.model.invoke_current_theme_changed()
         self.model.invoke_current_locale_changed()
+        self.model.invoke_current_debug_mode_changed()
+        self.model.invoke_current_debug_level_changed()
         
     @Slot()
     @block_signal(lambda self: self.view)
@@ -116,6 +120,20 @@ class MainWindowController():
         self.about_action.setStatusTip(locale_map[LocaleKeys.APP_MENU_HELP_ABOUT_STATUS_TIP])
         self.license_action.setStatusTip(locale_map[LocaleKeys.APP_MENU_HELP_LICENSE_STATUS_TIP])
     
+    @Slot()
+    @block_signal(lambda self: self.view)
+    def on_debug_mode_changed(self, debug_mode: bool) -> None:
+        self.view.log_widget.setVisible(debug_mode)
+
+    @Slot()
+    @block_signal(lambda self: self.view)
+    def on_debug_level_changed(self, debug_level: str) -> None:
+        self.view.log_widget.clear()
+        gui_handlers: list[QtHandler] = self.log_manager.get_handlers_filter(QtHandler)
+        for handler in gui_handlers:
+            handler.set_log_level(debug_level)
+            handler.emit_buffered_messages()
+
     @Slot()
     def open_settings_dialog(self):
         settings_dialog = SettingsDialog(self.view, screen=self.view.screen())

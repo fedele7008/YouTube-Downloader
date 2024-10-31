@@ -68,3 +68,6 @@ class LocaleKeys:
     SETTINGS_GENERAL_DOWNLOAD_DEFAULT_DOWNLOAD_PATH_ERROR_NOT_EXIST = "settings-general-download-default-download-path-error-not-exist"
     SETTINGS_GENERAL_DOWNLOAD_DEFAULT_DOWNLOAD_PATH_ERROR_NOT_WRITABLE = "settings-general-download-default-download-path-error-not-writable"
     SETTINGS_GENERAL_DOWNLOAD_LOAD_LAST_DOWNLOAD_PATH_LABEL = "settings-general-download-load-last-download-path-label"
+    SETTINGS_ADVANCED_DEBUG_TITLE = "settings-advanced-debug-title"
+    SETTINGS_ADVANCED_DEBUG_MODE_LABEL = "settings-advanced-debug-mode-label"
+    SETTINGS_ADVANCED_DEBUG_LOG_LEVEL_LABEL = "settings-advanced-debug-log-level-label"

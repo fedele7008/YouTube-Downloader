@@ -3,6 +3,10 @@ QMainWindow, QLabel, QDialog, QListWidget, QWidget {
     color: ${base-foreground-color};
 }
 
+QLabel:disabled {
+    color: ${disabled-color};
+}
+
 QScrollBar:vertical {
     border: 1px solid transparent;
     background: transparent;
@@ -203,6 +207,12 @@ QCheckBox::indicator:checked:hover {
 
 QCheckBox::indicator:checked:pressed {
     background: ${secondary-pressed-color};
+}
+
+QComboBox:disabled {
+    border: 1px solid ${disabled-color};
+    background-color: ${base-background-color};
+    color: ${disabled-color};
 }
 
 QTextEdit[class="readonly"] {
@@ -493,4 +503,8 @@ QFrame#hline {
 #settings-general-download-default-download-path-error-label {
     color: ${accent-color};
     font-size: ${font-size:-2}px;
+}
+
+#settings-advanced-debug-log-level-input {
+    max-width: 150px;
 }

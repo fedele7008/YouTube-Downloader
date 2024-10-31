@@ -112,3 +112,10 @@ class QtHandler(LogHandler):
             for level, msg in self.buffer:
                 if level >= self.level:
                     temporary_update_signal_emitter.log_signal.emit(msg)
+
+    def emit_buffered_messages(self):
+        if self.gui_ready:
+            with self.buffer_lock:
+                for level, msg in self.buffer:
+                    if level >= self.level:
+                        self.signal_emitter.log_signal.emit(msg)

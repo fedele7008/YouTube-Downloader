@@ -22,6 +22,7 @@ from youtube_downloader.model.application import YouTubeDownloaderModel
 from youtube_downloader.model.settings_proxy import SettingsProxyModel
 from youtube_downloader.view.settings_dialog import SettingsDialog
 from youtube_downloader.data.types.locale import Locale, LocaleKeys
+from youtube_downloader.data.types.log_levels import LogLevel
 
 class SettingsDialogController():
     class PathErrorType(Enum):
@@ -45,6 +46,8 @@ class SettingsDialogController():
             self.lang_to_locale_map[language] = locale
             self.locale_to_lang_map[locale] = language
 
+        self.debug_level_list = LogLevel.get_all_members_str()
+
         self.config_ui()
         self.bind_model()
         self.refresh_ui()
@@ -67,6 +70,8 @@ class SettingsDialogController():
         self.view.settings_pane_general.download_section.default_download_path_input.textChanged.connect(self.on_general_download_default_download_path_changed)
         self.view.settings_pane_general.download_section.load_last_download_path_checkbox.stateChanged.connect(self.on_general_download_load_last_download_path_changed)
         self.view.settings_pane_general.download_section.default_download_path_browse_button.clicked.connect(self.on_general_download_default_download_path_browse_button_clicked)
+        self.view.settings_pane_advanced.debug_section.debug_mode_checkbox.stateChanged.connect(self.on_advanced_debug_mode_changed)
+        self.view.settings_pane_advanced.debug_section.debug_log_level_input.textActivated.connect(self.on_advanced_debug_log_level_changed)
         self.model.locale_changed.connect(self.on_locale_changed)
 
     def refresh_ui(self):
@@ -89,6 +94,12 @@ class SettingsDialogController():
         self.view.settings_pane_general.download_section.default_download_path_input.setText(self.settings_proxy.snapshot_default_download_path)
         self.view.settings_pane_general.download_section.load_last_download_path_checkbox.setChecked(self.settings_proxy.snapshot_load_last_download_path)
 
+        self.view.settings_pane_advanced.debug_section.debug_mode_checkbox.setChecked(self.settings_proxy.snapshot_debug_mode)
+        self.view.settings_pane_advanced.debug_section.debug_log_level_input.clear()
+        self.view.settings_pane_advanced.debug_section.debug_log_level_input.addItems(self.debug_level_list)
+        self.view.settings_pane_advanced.debug_section.debug_log_level_input.setCurrentText(self.settings_proxy.snapshot_debug_level)
+        self.on_advanced_debug_log_level_changed(self.settings_proxy.snapshot_debug_level)
+
     def refresh_config_ui(self):
         self.view.settings_pane_general.locale_section.language_input.clear()
         self.view.settings_pane_general.locale_section.language_input.addItems(self.language_list)
@@ -98,6 +109,12 @@ class SettingsDialogController():
 
         self.view.settings_pane_general.download_section.default_download_path_input.setText(self.settings_proxy.proxy_default_download_path)
         self.view.settings_pane_general.download_section.load_last_download_path_checkbox.setChecked(self.settings_proxy.proxy_load_last_download_path)
+
+        self.view.settings_pane_advanced.debug_section.debug_mode_checkbox.setChecked(self.settings_proxy.proxy_debug_mode)
+        self.view.settings_pane_advanced.debug_section.debug_log_level_input.clear()
+        self.view.settings_pane_advanced.debug_section.debug_log_level_input.addItems(self.debug_level_list)
+        self.view.settings_pane_advanced.debug_section.debug_log_level_input.setCurrentText(self.settings_proxy.proxy_debug_level)
+        self.on_advanced_debug_log_level_changed(self.settings_proxy.proxy_debug_level)
 
     @Slot()
     @block_signal(lambda self: self.view)
@@ -119,6 +136,10 @@ class SettingsDialogController():
         self.view.settings_pane_general.download_section.load_last_download_path_checkbox.setText(locale_map[LocaleKeys.SETTINGS_GENERAL_DOWNLOAD_LOAD_LAST_DOWNLOAD_PATH_LABEL])
 
         self.on_general_download_default_download_path_changed(self.settings_proxy.proxy_default_download_path)
+
+        self.view.settings_pane_advanced.debug_section.title_label.setText(locale_map[LocaleKeys.SETTINGS_ADVANCED_DEBUG_TITLE])
+        self.view.settings_pane_advanced.debug_section.debug_mode_checkbox.setText(locale_map[LocaleKeys.SETTINGS_ADVANCED_DEBUG_MODE_LABEL])
+        self.view.settings_pane_advanced.debug_section.debug_log_level_label.setText(locale_map[LocaleKeys.SETTINGS_ADVANCED_DEBUG_LOG_LEVEL_LABEL])
 
     @Slot()
     def on_general_locale_language_changed(self, language: str) -> None:
@@ -147,6 +168,18 @@ class SettingsDialogController():
         default_download_path = QFileDialog.getExistingDirectory(self.view.settings_pane_general.download_section, browse_title, browse_dir)
         if default_download_path:
             self.view.settings_pane_general.download_section.default_download_path_input.setText(default_download_path)
+
+    @Slot()
+    def on_advanced_debug_mode_changed(self, state: Qt.CheckState) -> None:
+        self.settings_proxy.proxy_debug_mode = state == Qt.CheckState.Checked.value
+        self.view.settings_pane_advanced.debug_section.debug_log_level_label.setEnabled(self.settings_proxy.proxy_debug_mode)
+        self.view.settings_pane_advanced.debug_section.debug_log_level_input.setEnabled(self.settings_proxy.proxy_debug_mode)
+        self.update_buttons()
+
+    @Slot()
+    def on_advanced_debug_log_level_changed(self, debug_log_level: str) -> None:
+        self.settings_proxy.proxy_debug_level = debug_log_level
+        self.update_buttons()
 
     @Slot()
     def on_general_download_load_last_download_path_changed(self, state: Qt.CheckState) -> None:
