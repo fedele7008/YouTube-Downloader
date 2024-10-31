@@ -39,13 +39,15 @@ class SettingsDialogController():
         self.bind_model()
         self.refresh_ui()
         self.reset_config_ui()
-        self.register_shortcuts()
         self.update_buttons()
+        self.register_shortcuts()
 
     def config_ui(self):
         locale_map = self.resource_manager.locale_loader.get_locale(self.model.get_locale())["components"]
         self.view.settings_list.addItems(locale_map[LocaleKeys.SETTINGS_DIALOG_LIST])
+        self.view.settings_list.setCurrentRow(0)
 
+    def bind_model(self):
         self.view.restore_button.clicked.connect(self.on_restore_button_clicked)
         self.view.cancel_button.clicked.connect(self.on_cancel_button_clicked)
         self.view.apply_button.clicked.connect(self.on_apply_button_clicked)
@@ -54,10 +56,6 @@ class SettingsDialogController():
         self.view.settings_pane_general.locale_section.language_input.textActivated.connect(self.on_general_locale_language_changed)
         self.view.settings_pane_general.download_section.default_download_path_input.textChanged.connect(self.on_general_download_default_download_path_changed)
         self.view.settings_pane_general.download_section.load_last_download_path_checkbox.stateChanged.connect(self.on_general_download_load_last_download_path_changed)
-        
-        self.view.settings_list.setCurrentRow(0)
-
-    def bind_model(self):
         self.model.locale_changed.connect(self.on_locale_changed)
 
     def refresh_ui(self):
@@ -121,8 +119,7 @@ class SettingsDialogController():
 
     @Slot()
     def on_general_download_load_last_download_path_changed(self, state: Qt.CheckState) -> None:
-        is_checked = state == Qt.CheckState.Checked
-        self.settings_proxy.proxy_load_last_download_path = is_checked
+        self.settings_proxy.proxy_load_last_download_path = state == Qt.CheckState.Checked.value
         self.update_buttons()
 
     @Slot()
