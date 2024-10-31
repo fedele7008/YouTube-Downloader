@@ -99,6 +99,7 @@ class SettingsDialogController():
         self.view.settings_pane_advanced.debug_section.debug_log_level_input.addItems(self.debug_level_list)
         self.view.settings_pane_advanced.debug_section.debug_log_level_input.setCurrentText(self.settings_proxy.snapshot_debug_level)
         self.on_advanced_debug_log_level_changed(self.settings_proxy.snapshot_debug_level)
+        self.update_debug_log_level_ui()
 
     def refresh_config_ui(self):
         self.view.settings_pane_general.locale_section.language_input.clear()
@@ -115,6 +116,7 @@ class SettingsDialogController():
         self.view.settings_pane_advanced.debug_section.debug_log_level_input.addItems(self.debug_level_list)
         self.view.settings_pane_advanced.debug_section.debug_log_level_input.setCurrentText(self.settings_proxy.proxy_debug_level)
         self.on_advanced_debug_log_level_changed(self.settings_proxy.proxy_debug_level)
+        self.update_debug_log_level_ui()
 
     @Slot()
     @block_signal(lambda self: self.view)
@@ -172,8 +174,7 @@ class SettingsDialogController():
     @Slot()
     def on_advanced_debug_mode_changed(self, state: Qt.CheckState) -> None:
         self.settings_proxy.proxy_debug_mode = state == Qt.CheckState.Checked.value
-        self.view.settings_pane_advanced.debug_section.debug_log_level_label.setEnabled(self.settings_proxy.proxy_debug_mode)
-        self.view.settings_pane_advanced.debug_section.debug_log_level_input.setEnabled(self.settings_proxy.proxy_debug_mode)
+        self.update_debug_log_level_ui()
         self.update_buttons()
 
     @Slot()
@@ -218,6 +219,10 @@ class SettingsDialogController():
         self.view.apply_button.setEnabled(self.settings_proxy.is_dirty_proxy())
         self.view.apply_button.style().unpolish(self.view.apply_button)
         self.view.apply_button.style().polish(self.view.apply_button)
+
+    def update_debug_log_level_ui(self) -> None:
+        self.view.settings_pane_advanced.debug_section.debug_log_level_label.setEnabled(self.settings_proxy.proxy_debug_mode)
+        self.view.settings_pane_advanced.debug_section.debug_log_level_input.setEnabled(self.settings_proxy.proxy_debug_mode)
 
     def show_error_label(self, error_type: PathErrorType | None) -> None:
         if error_type is None:
