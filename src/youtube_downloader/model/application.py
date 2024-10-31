@@ -62,10 +62,10 @@ class YouTubeDownloaderModel(QObject):
         return self.resource_manager.font_loader.get_config_font_size()
     
     def get_default_download_path(self) -> str:
-        return self.resource_manager.config_loader.get_config(ConfigKeys.SETTINGS_STANDARD_DOWNLOAD_PATH)
+        return self.resource_manager.config_loader.get_config(ConfigKeys.SETTINGS_STANDARD_DOWNLOAD_PATH).replace("\\", "/")
     
     def get_last_download_path(self) -> str:
-        return self.resource_manager.config_loader.get_config(ConfigKeys.SETTINGS_LAST_DOWNLOAD_PATH)
+        return self.resource_manager.config_loader.get_config(ConfigKeys.SETTINGS_LAST_DOWNLOAD_PATH).replace("\\", "/")
     
     def get_load_last_download_path(self) -> bool:
         return self.resource_manager.config_loader.get_config(ConfigKeys.SETTINGS_LOAD_LAST_DOWNLOAD_PATH)
