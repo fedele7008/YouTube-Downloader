@@ -7,10 +7,15 @@ Copyright (c) 2024 John Yoon. All rights reserved.
 Licensed under the MIT License. See LICENSE file in the project root for more information.
 """
 
+import os
+from enum import Enum
+
 from PySide6.QtCore import Qt, Slot
 from PySide6.QtGui import QShortcut, QKeySequence
+from PySide6.QtWidgets import QFileDialog
 
 from youtube_downloader.util.decorator import block_signal
+from youtube_downloader.util.path import get_system_download_path
 from youtube_downloader.data.log_manager import LogManager, get_null_logger
 from youtube_downloader.data.resource_manager import ResourceManager
 from youtube_downloader.model.application import YouTubeDownloaderModel
@@ -19,6 +24,11 @@ from youtube_downloader.view.settings_dialog import SettingsDialog
 from youtube_downloader.data.types.locale import Locale, LocaleKeys
 
 class SettingsDialogController():
+    class PathErrorType(Enum):
+        EMPTY_PATH = 0
+        PATH_NOT_EXIST = 1
+        PATH_NOT_WRITABLE = 2
+
     def __init__(self, log_manager: LogManager | None, resource_manager: ResourceManager, view: SettingsDialog, model: YouTubeDownloaderModel):
         self.log_manager: LogManager = log_manager
         self.logger = self.log_manager.get_logger() if self.log_manager else get_null_logger()
@@ -56,6 +66,7 @@ class SettingsDialogController():
         self.view.settings_pane_general.locale_section.language_input.textActivated.connect(self.on_general_locale_language_changed)
         self.view.settings_pane_general.download_section.default_download_path_input.textChanged.connect(self.on_general_download_default_download_path_changed)
         self.view.settings_pane_general.download_section.load_last_download_path_checkbox.stateChanged.connect(self.on_general_download_load_last_download_path_changed)
+        self.view.settings_pane_general.download_section.default_download_path_browse_button.clicked.connect(self.on_general_download_default_download_path_browse_button_clicked)
         self.model.locale_changed.connect(self.on_locale_changed)
 
     def refresh_ui(self):
@@ -104,7 +115,10 @@ class SettingsDialogController():
         self.view.settings_pane_general.locale_section.language_label.setText(locale_map[LocaleKeys.SETTINGS_GENERAL_LOCALE_LANGUAGE_LABEL])
         self.view.settings_pane_general.download_section.title_label.setText(locale_map[LocaleKeys.SETTINGS_GENERAL_DOWNLOAD_TITLE])
         self.view.settings_pane_general.download_section.default_download_path_label.setText(locale_map[LocaleKeys.SETTINGS_GENERAL_DOWNLOAD_DEFAULT_DOWNLOAD_PATH_LABEL])
+        self.view.settings_pane_general.download_section.default_download_path_browse_button.setText(locale_map[LocaleKeys.SETTINGS_GENERAL_DOWNLOAD_DEFAULT_DOWNLOAD_PATH_BROWSE_BUTTON])
         self.view.settings_pane_general.download_section.load_last_download_path_checkbox.setText(locale_map[LocaleKeys.SETTINGS_GENERAL_DOWNLOAD_LOAD_LAST_DOWNLOAD_PATH_LABEL])
+
+        self.on_general_download_default_download_path_changed(self.settings_proxy.proxy_default_download_path)
 
     @Slot()
     def on_general_locale_language_changed(self, language: str) -> None:
@@ -116,6 +130,23 @@ class SettingsDialogController():
     def on_general_download_default_download_path_changed(self, path: str) -> None:
         self.settings_proxy.proxy_default_download_path = path
         self.update_buttons()
+        
+        error_type: SettingsDialogController.PathErrorType | None = None
+        if not path:
+            error_type = self.PathErrorType.EMPTY_PATH
+        elif not os.path.isdir(path):
+            error_type = self.PathErrorType.PATH_NOT_EXIST
+        elif not os.access(path, os.W_OK):
+            error_type = self.PathErrorType.PATH_NOT_WRITABLE
+        self.show_error_label(error_type)
+
+    @Slot()
+    def on_general_download_default_download_path_browse_button_clicked(self):
+        browse_dir = get_system_download_path()
+        browse_title = self.resource_manager.locale_loader.get_locale(self.model.get_locale())["components"][LocaleKeys.SETTINGS_GENERAL_DOWNLOAD_DEFAULT_DOWNLOAD_PATH_BROWSE_DIALOG_TITLE]
+        default_download_path = QFileDialog.getExistingDirectory(self.view.settings_pane_general.download_section, browse_title, browse_dir)
+        if default_download_path:
+            self.view.settings_pane_general.download_section.default_download_path_input.setText(default_download_path)
 
     @Slot()
     def on_general_download_load_last_download_path_changed(self, state: Qt.CheckState) -> None:
@@ -142,7 +173,7 @@ class SettingsDialogController():
         self.settings_proxy.push_settings()
         self.view.close()
 
-    @Slot(int)
+    @Slot()
     def on_settings_group_changed(self, index: int) -> None:
         self.view.settings_pane.setCurrentIndex(index)
 
@@ -154,6 +185,24 @@ class SettingsDialogController():
         self.view.apply_button.setEnabled(self.settings_proxy.is_dirty_proxy())
         self.view.apply_button.style().unpolish(self.view.apply_button)
         self.view.apply_button.style().polish(self.view.apply_button)
+
+    def show_error_label(self, error_type: PathErrorType | None) -> None:
+        if error_type is None:
+            self.view.settings_pane_general.download_section.default_download_path_error_label.hide()
+            return
+        
+        match error_type:
+            case self.PathErrorType.EMPTY_PATH:
+                msg = self.resource_manager.locale_loader.get_locale(self.model.get_locale())["components"][LocaleKeys.SETTINGS_GENERAL_DOWNLOAD_DEFAULT_DOWNLOAD_PATH_ERROR_NOT_SET]
+                self.view.settings_pane_general.download_section.default_download_path_error_label.setText(msg.format(path=self.settings_proxy.snapshot_default_download_path))
+            case self.PathErrorType.PATH_NOT_EXIST:
+                msg = self.resource_manager.locale_loader.get_locale(self.model.get_locale())["components"][LocaleKeys.SETTINGS_GENERAL_DOWNLOAD_DEFAULT_DOWNLOAD_PATH_ERROR_NOT_EXIST]
+                self.view.settings_pane_general.download_section.default_download_path_error_label.setText(msg.format(path=self.settings_proxy.snapshot_default_download_path))
+            case self.PathErrorType.PATH_NOT_WRITABLE:
+                msg = self.resource_manager.locale_loader.get_locale(self.model.get_locale())["components"][LocaleKeys.SETTINGS_GENERAL_DOWNLOAD_DEFAULT_DOWNLOAD_PATH_ERROR_NOT_WRITABLE]
+                self.view.settings_pane_general.download_section.default_download_path_error_label.setText(msg.format(path=self.settings_proxy.snapshot_default_download_path))
+        self.view.settings_pane_general.download_section.default_download_path_error_label.show()
+
 
     def exec(self):
         self.view.exec()

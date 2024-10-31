@@ -8,7 +8,7 @@ Licensed under the MIT License. See LICENSE file in the project root for more in
 """
 
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QScrollArea, QLabel, QHBoxLayout, 
-                               QComboBox, QSizePolicy, QLineEdit, QCheckBox)
+                               QComboBox, QSizePolicy, QLineEdit, QCheckBox, QPushButton)
 from PySide6.QtCore import Qt
 
 from youtube_downloader.view.hline_widget import HLineWidget
@@ -93,11 +93,19 @@ class SettingsGeneralPane(QWidget):
             default_download_path_widget = QWidget()
             default_download_path_layout = QVBoxLayout()
             default_download_path_widget.setLayout(default_download_path_layout)
-            self.default_download_path_label = QLabel()
-            self.default_download_path_input = QLineEdit()
-            default_download_path_layout.addWidget(self.default_download_path_label)
-            default_download_path_layout.addWidget(self.default_download_path_input)
             content_layout.addWidget(default_download_path_widget)
+            self.default_download_path_label = QLabel()
+            default_download_path_layout.addWidget(self.default_download_path_label)
+            path_input_widget = QWidget()
+            path_input_layout = QHBoxLayout()
+            path_input_widget.setLayout(path_input_layout)
+            self.default_download_path_input = QLineEdit()
+            self.default_download_path_browse_button = QPushButton()
+            path_input_layout.addWidget(self.default_download_path_input)
+            path_input_layout.addWidget(self.default_download_path_browse_button)
+            default_download_path_layout.addWidget(path_input_widget)
+            self.default_download_path_error_label = QLabel()
+            default_download_path_layout.addWidget(self.default_download_path_error_label)
 
             ### ROOT > CONTENT > CONFIG:LOAD-LAST-DOWNLOAD-PATH ###
             self.load_last_download_path_checkbox = QCheckBox()
@@ -106,6 +114,7 @@ class SettingsGeneralPane(QWidget):
             ### STYLE: Content margins ###
             root_layout.setContentsMargins(0, 0, 0, 0)
             default_download_path_layout.setContentsMargins(0, 0, 0, 0)
+            path_input_layout.setContentsMargins(0, 0, 0, 0)
             content_layout.setContentsMargins(30, 0, 0, 0)
 
             ### STYLE: Spacing ###
@@ -113,14 +122,20 @@ class SettingsGeneralPane(QWidget):
             default_download_path_layout.setSpacing(6)
             content_layout.setSpacing(12)
 
+            ### STYLE: Alignment ###
+            self.default_download_path_error_label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+
             ### STYLE: Property ###
             self.title_label.setProperty("class", "settings-section-title")
+            self.default_download_path_browse_button.setProperty("class", "neutral")
 
             ### STYLE: Object name ###
             self.title_label.setObjectName("settings-general-download-title")
             self.default_download_path_label.setObjectName("settings-general-download-default-download-path-label")
             self.default_download_path_input.setObjectName("settings-general-download-default-download-path-input")
+            self.default_download_path_browse_button.setObjectName("settings-general-download-default-download-path-browse-button")
             self.load_last_download_path_checkbox.setObjectName("settings-general-download-load-last-download-path-checkbox")
+            self.default_download_path_error_label.setObjectName("settings-general-download-default-download-path-error-label")
 
     def __init__(self):
         super().__init__()
