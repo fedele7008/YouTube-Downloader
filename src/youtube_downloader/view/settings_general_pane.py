@@ -49,7 +49,11 @@ class SettingsGeneralPane(QWidget):
             ### STYLE: Content margins ###
             root_layout.setContentsMargins(0, 0, 0, 0)
             language_layout.setContentsMargins(0, 0, 0, 0)
-            content_layout.setContentsMargins(20, 0, 0, 0)
+            content_layout.setContentsMargins(30, 0, 0, 0)
+
+            ### STYLE: Spacing ###
+            root_layout.setSpacing(8)
+            language_layout.setSpacing(4)
 
             ### STYLE: Size policy ###
             self.language_label.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
@@ -57,7 +61,6 @@ class SettingsGeneralPane(QWidget):
 
             ### STYLE: Property ###
             self.title_label.setProperty("class", "settings-section-title")
-            self.language_label.setProperty("class", "input-label")
             self.language_input.setProperty("class", "combo-box")
 
             ### STYLE: Object name ###
@@ -103,10 +106,12 @@ class SettingsGeneralPane(QWidget):
             ### STYLE: Content margins ###
             root_layout.setContentsMargins(0, 0, 0, 0)
             default_download_path_layout.setContentsMargins(0, 0, 0, 0)
-            content_layout.setContentsMargins(20, 0, 0, 0)
+            content_layout.setContentsMargins(30, 0, 0, 0)
 
             ### STYLE: Spacing ###
-            default_download_path_layout.setSpacing(4)
+            root_layout.setSpacing(8)
+            default_download_path_layout.setSpacing(6)
+            content_layout.setSpacing(12)
 
             ### STYLE: Property ###
             self.title_label.setProperty("class", "settings-section-title")
