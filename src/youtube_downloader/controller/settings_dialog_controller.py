@@ -7,7 +7,7 @@ Copyright (c) 2024 John Yoon. All rights reserved.
 Licensed under the MIT License. See LICENSE file in the project root for more information.
 """
 
-from PySide6.QtCore import Slot
+from PySide6.QtCore import Qt, Slot
 from PySide6.QtGui import QShortcut, QKeySequence
 
 from youtube_downloader.util.decorator import block_signal
@@ -120,8 +120,9 @@ class SettingsDialogController():
         self.update_buttons()
 
     @Slot()
-    def on_general_download_load_last_download_path_changed(self, state: bool) -> None:
-        self.settings_proxy.proxy_load_last_download_path = state
+    def on_general_download_load_last_download_path_changed(self, state: Qt.CheckState) -> None:
+        is_checked = state == Qt.CheckState.Checked
+        self.settings_proxy.proxy_load_last_download_path = is_checked
         self.update_buttons()
 
     @Slot()
