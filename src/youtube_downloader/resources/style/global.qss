@@ -175,6 +175,36 @@ QScrollArea {
     border: none;
 }
 
+QCheckBox::indicator {
+    border: 2px solid ${border-color};
+    border-radius: 4px;
+}
+
+QCheckBox::indicator:unchecked {
+    border: 2px solid ${border-color};
+}
+
+QCheckBox::indicator:unchecked:hover {
+    border: 2px solid ${secondary-hover-color};
+}
+
+QCheckBox::indicator:unchecked:pressed {
+    border: 2px solid ${secondary-pressed-color};
+}
+
+QCheckBox::indicator:checked {
+    border: 2px solid ${secondary-color};
+    background: ${secondary-hover-color};
+}
+
+QCheckBox::indicator:checked:hover {
+    background: ${secondary-pressed-color};
+}
+
+QCheckBox::indicator:checked:pressed {
+    background: ${secondary-pressed-color};
+}
+
 QTextEdit[class="readonly"] {
     background-color: ${base-background-color};
     color: ${base-foreground-color};
