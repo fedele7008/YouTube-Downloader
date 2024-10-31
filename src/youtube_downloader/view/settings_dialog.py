@@ -9,9 +9,14 @@ Licensed under the MIT License. See LICENSE file in the project root for more in
 
 from typing import Any
 
-from youtube_downloader.util.gui import center_widget_on_screen
+from youtube_downloader.util.gui import center_widget_on_screen, QCursor
 from PySide6.QtWidgets import (QDialog, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, 
                                QSizePolicy, QListWidget, QStackedWidget)
+from PySide6.QtCore import Qt
+
+from youtube_downloader.view.settings_general_pane import SettingsGeneralPane
+from youtube_downloader.view.settings_appearance_pane import SettingsAppearancePane
+from youtube_downloader.view.settings_advanced_pane import SettingsAdvancedPane
 
 class SettingsDialog(QDialog):
     def __init__(self, parent: QWidget, **kwargs: Any):
@@ -31,6 +36,14 @@ class SettingsDialog(QDialog):
 
         self.settings_list = QListWidget()
         self.settings_pane = QStackedWidget()
+
+        self.settings_pane_general = SettingsGeneralPane()
+        self.settings_pane_appearance = SettingsAppearancePane()
+        self.settings_pane_advanced = SettingsAdvancedPane()
+
+        self.settings_pane.addWidget(self.settings_pane_general)
+        self.settings_pane.addWidget(self.settings_pane_appearance)
+        self.settings_pane.addWidget(self.settings_pane_advanced)
 
         self.main_layout.addWidget(self.settings_list)
         self.main_layout.addWidget(self.settings_pane)
@@ -60,12 +73,14 @@ class SettingsDialog(QDialog):
         self.restore_button.setObjectName("settings-dialog-restore-button")
         self.cancel_button.setProperty("class", "accent")
         self.cancel_button.setObjectName("settings-dialog-cancel-button")
-        self.apply_button.setProperty("class", "neutral")
+        self.apply_button.setProperty("class", "neutral-hollow")
         self.apply_button.setObjectName("settings-dialog-apply-button")
         self.save_button.setProperty("class", "primary")
         self.save_button.setObjectName("settings-dialog-save-button")
         self.footer_widget.setObjectName("settings-dialog-footer-widget")
         self.settings_list.setObjectName("settings-dialog-settings-list")
+
+        self.settings_list.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
 
         self.dialog_layout.setContentsMargins(0, 0, 0, 0)
         self.dialog_layout.setSpacing(0)

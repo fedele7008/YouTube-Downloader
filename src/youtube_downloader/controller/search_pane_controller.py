@@ -22,7 +22,6 @@ from youtube_downloader.data.types.locale import Locale, LocaleKeys
 from youtube_downloader.util.decorator import block_signal
 from youtube_downloader.util.path import get_system_download_path
 from youtube_downloader.view.error_dialog import ErrorDialog
-from youtube_downloader.data.loaders.config_loader import ConfigKeys
 
 class SearchPaneController():
     class ErrorType(Enum):
@@ -45,16 +44,17 @@ class SearchPaneController():
     def config_ui(self):
         self.dialog_title = str()
         
-        if self.resource_manager.config_loader.get_config(ConfigKeys.SETTINGS_LOAD_LAST_DOWNLOAD_PATH):
-            self.view.dest_input.setText(self.resource_manager.config_loader.get_config(ConfigKeys.SETTINGS_LAST_DOWNLOAD_PATH))
+        if self.model.get_load_last_download_path():
+            self.view.dest_input.setText(self.model.get_last_download_path())
         else:
-            self.view.dest_input.setText(self.resource_manager.config_loader.get_config(ConfigKeys.SETTINGS_STANDARD_DOWNLOAD_PATH))
+            self.view.dest_input.setText(self.model.get_default_download_path())
 
         self.view.browse_button.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         self.view.search_button.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
 
     def bind_model(self):
         self.model.locale_changed.connect(self.on_locale_changed)
+        self.model.default_download_path_changed.connect(self.on_default_download_path_changed)
         self.view.dest_input.textChanged.connect(self.on_dest_input_changed)
         self.view.browse_button.clicked.connect(self.on_browse_button_clicked)
         self.view.search_button.clicked.connect(self.on_search_button_clicked)
@@ -77,6 +77,11 @@ class SearchPaneController():
         self.on_dest_input_changed()
 
     @Slot()
+    def on_default_download_path_changed(self, default_download_path: str) -> None:
+        if not self.model.get_load_last_download_path():
+            self.view.dest_input.setText(default_download_path)
+
+    @Slot()
     def on_dest_input_changed(self) -> None:
         error_type: SearchPaneController.ErrorType | None = None
         if not self.view.dest_input.text():
@@ -88,8 +93,8 @@ class SearchPaneController():
         self.view.search_button.setEnabled(error_type is None)
         self.show_error_label(error_type)
 
-        if error_type is None and self.resource_manager.config_loader.get_config(ConfigKeys.SETTINGS_LOAD_LAST_DOWNLOAD_PATH):
-            self.resource_manager.config_loader.save_config_key(ConfigKeys.SETTINGS_LAST_DOWNLOAD_PATH, self.view.dest_input.text())
+        if error_type is None:
+            self.model.set_last_download_path(self.view.dest_input.text(), quite=True)
 
     @Slot()
     def on_browse_button_clicked(self) -> None:

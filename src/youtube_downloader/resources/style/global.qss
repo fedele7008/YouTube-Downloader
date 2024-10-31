@@ -1,4 +1,4 @@
-QMainWindow, QLabel, QDialog, QListWidget {
+QMainWindow, QLabel, QDialog, QListWidget, QWidget {
     background-color: ${base-background-color};
     color: ${base-foreground-color};
 }
@@ -171,6 +171,10 @@ QListWidget::item:selected {
     outline: none;
 }
 
+QScrollArea {
+    border: none;
+}
+
 QTextEdit[class="readonly"] {
     background-color: ${base-background-color};
     color: ${base-foreground-color};
@@ -182,6 +186,7 @@ QTextEdit[class="readonly"] {
 }
 
 QPushButton[class="primary"] {
+    border: 1px solid transparent;
     background-color: ${primary-color};
     color: ${primary-text-color};
 }
@@ -199,6 +204,7 @@ QPushButton[class="primary"]:disabled {
 }
 
 QPushButton[class="secondary"] {
+    border: 1px solid transparent;
     background-color: ${secondary-color};
     color: ${secondary-text-color};
 }
@@ -216,6 +222,7 @@ QPushButton[class="secondary"]:disabled {
 }
 
 QPushButton[class="accent"] {
+    border: 1px solid transparent;
     background-color: ${accent-color};
     color: ${accent-text-color};
 }
@@ -233,6 +240,7 @@ QPushButton[class="accent"]:disabled {
 }
 
 QPushButton[class="neutral"] {
+    border: 1px solid transparent;
     background-color: ${neutral-color};
     color: ${neutral-text-color};
 }
@@ -328,6 +336,18 @@ QLabel[class="input-label"] {
 
 QLineEdit[class="input-field"] {
     padding: 2px;
+}
+
+QWidget[class="settings-content"] {
+    border: none;
+}
+
+QLabel[class="settings-section-title"] {
+    font-size: ${font-size:+4}px;
+}
+
+QFrame#hline {
+    background-color: ${border-color};
 }
 
 #content-widget {
@@ -429,4 +449,8 @@ QLineEdit[class="input-field"] {
 
 #settings-dialog-settings-list {
     border-right: 1px solid ${border-color};
+}
+
+#settings-general-locale-language-input {
+    max-width: 200px;
 }

@@ -19,6 +19,10 @@ from youtube_downloader.util.path import get_font_path, recursive_find
 
 PREFERRED_FONT_FAMILY = "NanumGothic"
 
+MINIMUM_FONT_SIZE = 8
+MAXIMUM_FONT_SIZE = 32
+DEFAULT_FONT_SIZE = 13
+
 class FontLoader():
     def __init__(self, config_loader: ConfigLoader, log_manager: LogManager | None = None):
         self.log_manager = log_manager
@@ -35,6 +39,12 @@ class FontLoader():
         
         self.register_font_recursive()
         self.logger.debug(f"{len(self.get_all_available_font_families())} font families available")
+
+        self.config_font_size: int = self.config_loader.get_config(ConfigKeys.SETTINGS_FONT_SIZE)
+        if self.config_font_size < MINIMUM_FONT_SIZE or self.config_font_size > MAXIMUM_FONT_SIZE:
+            self.logger.warning(f"Invalid font size: {self.config_font_size}. Using default font size: {DEFAULT_FONT_SIZE}")
+            self.config_font_size = DEFAULT_FONT_SIZE
+            self.config_loader.save_config_key(ConfigKeys.SETTINGS_FONT_SIZE, self.config_font_size)
 
         if not self.validate_font_family(self.config_font):
             self.logger.warning(f"Invalid font family: {self.config_font}. Using default system font: {get_default_system_font()}")
@@ -102,3 +112,18 @@ class FontLoader():
             err_str = f"Invalid font family: {font_family}"
             self.logger.error(err_str)
             raise ValueError(err_str)
+        
+    def get_config_font(self) -> str:
+        return self.config_font
+
+    def get_config_font_size(self) -> int:
+        return self.config_font_size
+
+    def set_config_font_size(self, font_size: int) -> None:
+        if font_size < MINIMUM_FONT_SIZE or font_size > MAXIMUM_FONT_SIZE:
+            err_str = f"Invalid font size: {font_size}. Aborting the change."
+            self.logger.error(err_str)
+            raise ValueError(err_str)
+        self.config_font_size = font_size
+        self.config_loader.save_config_key(ConfigKeys.SETTINGS_FONT_SIZE, font_size)
+        self.logger.info(f"Changed config font size to: {font_size}")
