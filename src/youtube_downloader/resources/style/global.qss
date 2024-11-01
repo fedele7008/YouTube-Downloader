@@ -579,7 +579,7 @@ QFrame#hline {
 }
 
 #settings-appearance-fonts-font-input {
-    max-width: 200px;
+    max-width: 500px;
 }
 
 #settings-appearance-fonts-font-size-input {

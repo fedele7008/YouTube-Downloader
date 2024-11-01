@@ -17,7 +17,7 @@ from youtube_downloader.data.log_manager import LogManager, get_null_logger
 from youtube_downloader.data.loaders.config_loader import ConfigLoader, ConfigKeys
 from youtube_downloader.util.path import get_font_path, recursive_find
 
-PREFERRED_FONT_FAMILY = "NanumGothic"
+PREFERRED_FONT_FAMILY = "NanumBarunGothic"
 
 MINIMUM_FONT_SIZE = 8
 MAXIMUM_FONT_SIZE = 32
