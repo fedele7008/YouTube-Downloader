@@ -7,14 +7,14 @@ Copyright (c) 2024 John Yoon. All rights reserved.
 Licensed under the MIT License. See LICENSE file in the project root for more information.
 """
 
-import os, re, shutil, textwrap
+import os, re, shutil, zipfile, textwrap, uuid
 from typing import Self
 
 import youtube_downloader
 from youtube_downloader.data.loaders.config_loader import ConfigLoader, ConfigKeys
 from youtube_downloader.data.log_manager import LogManager, get_null_logger
 from youtube_downloader.util.path import (get_style_path, get_resource_theme_path, get_theme_path,
-                                          get_resource_path, flat_find)
+                                          get_resource_path, flat_find, recursive_find)
 from youtube_downloader.data.loaders.common import DEFAULT_THEME_NAME
 
 class Theme():
@@ -24,6 +24,7 @@ class Theme():
     THEME_ADDITIONAL_STYLES_HEADER = "[ADDITIONAL STYLES]"
 
     SEPARATOR = ":"
+    ASSETS_DIR = "assets"
 
     class ThemeInfoKeys():
         NAME = "name"
@@ -59,6 +60,7 @@ class Theme():
     def __init__(self, theme_path: str, theme_name: str, theme_info: dict, theme_colors: dict | None = None, theme_styles: str | None = None, log_manager: LogManager | None = None):
         self.logger = log_manager.get_logger() if log_manager else get_null_logger()
         self.theme_path = theme_path
+        self.theme_assets_path = os.path.join(os.path.dirname(theme_path), Theme.ASSETS_DIR)
         self.theme_name = theme_name
         self.theme_info = theme_info
         self.theme_colors = theme_colors
@@ -228,7 +230,7 @@ class StyleLoader():
             os.makedirs(self.appdata_theme_path)
 
         # Load existing theme files in appdata theme path
-        for theme_file in flat_find(self.appdata_theme_path, "theme"):
+        for theme_file in recursive_find(self.appdata_theme_path, "theme"):
             try:
                 theme = Theme.parse_theme_file(theme_file, self.log_manager)
                 if theme.theme_info[Theme.ThemeInfoKeys.VERSION] != youtube_downloader.__version__:
@@ -238,11 +240,11 @@ class StyleLoader():
                     self.logger.warn(f"Theme file {theme_file} is already loaded: {theme.theme_name}")
                     continue
                 self.themes[theme.theme_name] = theme
-                self.logger.debug(f"Loaded theme file: {theme.theme_name}.theme")
-            except Exception as e:
-                self.logger.error(f"Failed to load theme file: {theme_file}. Skipping the load.")
+                self.logger.debug(f"Loaded theme: {theme.theme_name}")
+            except Exception:
+                self.logger.error(f"Failed to load theme package: {os.path.dirname(theme_file)}. Skipping the load.")
 
-        for theme_file in flat_find(self.resource_theme_path, "theme"):
+        for theme_file in recursive_find(self.resource_theme_path, "theme"):
             try:
                 theme = Theme.parse_theme_file(theme_file, self.log_manager)
                 if theme.theme_info[Theme.ThemeInfoKeys.VERSION] != youtube_downloader.__version__:
@@ -250,19 +252,17 @@ class StyleLoader():
                     continue
                 if theme.theme_name in self.themes:
                     continue
-                self.themes[theme.theme_name] = theme
-                shutil.copy(theme_file, os.path.join(self.appdata_theme_path, f"{theme.theme_name}.theme"))
-                self.logger.debug(f"Copied system theme file: {theme.theme_name} to {self.appdata_theme_path}")
-                self.logger.debug(f"Loaded system theme file: {theme.theme_name}.theme")
-            except Exception as e:
-                self.logger.error(f"Failed to load system theme file: {theme_file}. Skipping the load.")
+                self.import_theme(theme_file)
+                self.logger.debug(f"Copied system theme package: {theme.theme_name} to {self.appdata_theme_path}")
+            except Exception:
+                self.logger.error(f"Failed to load system theme package: {os.path.dirname(theme_file)}. Skipping the load.")
 
         # Check if the theme specified in config exists
         if self.config_theme not in self.themes:
             self.logger.warn(f"Theme specified in config does not exist: {self.config_theme}. Using default theme, {DEFAULT_THEME_NAME}")
             self.config_theme = DEFAULT_THEME_NAME
             self.config_loader.save_config_key(key=ConfigKeys.SETTINGS_THEME, value=self.config_theme)
-            
+
         # Re-confirm that the theme specified in config exists
         if self.config_theme not in self.themes:
             err_str = f"Theme specified in config does not exist: {self.config_theme}"
@@ -302,7 +302,10 @@ class StyleLoader():
 
         self.global_style = global_style_raw
         
-    def get_style(self) -> str:
+    def get_style(self, theme_name: str | None = None) -> str:
+        if theme_name is None or theme_name not in self.themes:
+            theme_name = self.config_theme
+
         # Call this method upon change of font settings or theme
         font_style = textwrap.dedent(f"""\
         * {{
@@ -311,7 +314,7 @@ class StyleLoader():
         }}
         """)
         style = f"{font_style}\n{self.global_style}\n\n/* THEME STYLES */\n\n"
-        theme = self.themes[self.config_theme]
+        theme = self.themes[theme_name]
         style += theme.theme_styles
 
         # Replace any ${font-size} with config font size
@@ -336,6 +339,14 @@ class StyleLoader():
             file_url = f"\"{file_path.replace('\\', '/')}\""
             return file_url
         style = re.sub(r"\${resource:([^}]+)}", replace_resource, style)
+
+        # Replace any ${asset:path/to/asset} with the actual asset path
+        def replace_asset(match):
+            asset_path = match.group(1)
+            file_path = os.path.join(*[theme.theme_assets_path] + asset_path.split('/'))
+            file_url = f"\"{file_path.replace('\\', '/')}\""
+            return file_url
+        style = re.sub(r"\${asset:([^}]+)}", replace_asset, style)
         return style
 
     def get_all_available_themes(self) -> list[str]:
@@ -350,24 +361,105 @@ class StyleLoader():
             err_str = f"Theme file does not exist: {theme_path}"
             self.logger.error(err_str)
             raise FileNotFoundError(err_str)
+
+        has_temp_dir = False
         
-        # Check if the theme file is valid
-        if not theme_path.endswith(".theme"):
-            err_str = f"Theme file is invalid: {theme_path}"
+        # Check if the theme file is a zip file
+        if zipfile.is_zipfile(theme_path):
+            # Create a temporary directory
+            temp_dir = os.path.join(self.appdata_theme_path, f"tmp_import_theme_{uuid.uuid4()}")
+            os.makedirs(temp_dir, exist_ok=True)
+            has_temp_dir = True
+
+            # Extract the zip file to the temporary directory
+            with zipfile.ZipFile(theme_path, "r") as zip_ref:
+                zip_ref.extractall(temp_dir)
+            
+            # Use the extracted directory as the theme path
+            theme_path = temp_dir
+
+        if os.path.isdir(theme_path):
+            # Locate all theme files in the theme path
+            theme_files = recursive_find(theme_path, "theme")
+            if len(theme_files) == 0:
+                err_str = f"No theme files found in the theme path: {theme_path}"
+                self.logger.error(err_str)
+                if has_temp_dir:
+                    shutil.rmtree(temp_dir)
+                raise ValueError(err_str)
+            elif len(theme_files) > 1:
+                err_str = f"Multiple theme files found in the theme path: {theme_path}"
+                self.logger.error(err_str)
+                if has_temp_dir:
+                    shutil.rmtree(temp_dir)
+                raise ValueError(err_str)
+            
+            theme_file = theme_files[0]
+        else:
+            # Verify if theme_path is a theme file
+            if not theme_path.endswith(".theme"):
+                err_str = f"Theme file is invalid: {theme_path}"
+                self.logger.error(err_str)
+                if has_temp_dir:
+                    shutil.rmtree(temp_dir)
+                raise ValueError(err_str)
+            theme_file = theme_path
+
+        # Check if the theme file is readable
+        if not os.access(theme_file, os.R_OK):
+            err_str = f"Theme file is not readable: {theme_file}"
             self.logger.error(err_str)
+            if has_temp_dir:
+                shutil.rmtree(temp_dir)
             raise ValueError(err_str)
         
-        theme = Theme.parse_theme_file(theme_path, self.log_manager)
+        # Check if assets directory exists
+        src_package_path = os.path.dirname(theme_file)
+        src_assets_path = os.path.join(src_package_path, Theme.ASSETS_DIR)
+        if not os.path.exists(src_assets_path) or not os.path.isdir(src_assets_path):
+            err_str = f"Theme file {theme_file} is missing assets directory: {src_assets_path}"
+            self.logger.error(err_str)
+            if has_temp_dir:
+                shutil.rmtree(temp_dir)
+            raise ValueError(err_str)
+        
+        try:
+            theme = Theme.parse_theme_file(theme_file, self.log_manager)
+        except Exception:
+            err_str = f"Failed to parse theme file: {theme_file}. Aborting the load."
+            self.logger.error(err_str)
+            if has_temp_dir:
+                shutil.rmtree(temp_dir)
+            raise ValueError(err_str)
         if theme.theme_info[Theme.ThemeInfoKeys.VERSION] != youtube_downloader.__version__:
             err_str = f"Theme file {theme.theme_name} version mismatches: {theme.theme_info[Theme.ThemeInfoKeys.VERSION]} (current app version: {youtube_downloader.__version__}). Aborting the load."
             self.logger.error(err_str)
+            if has_temp_dir:
+                shutil.rmtree(temp_dir)
             raise ValueError(err_str)
         if theme.theme_name in self.themes:
             err_str = f"Theme file {theme_path} is already loaded: {theme.theme_name}"
             self.logger.error(err_str)
+            if has_temp_dir:
+                shutil.rmtree(temp_dir)
             raise ValueError(err_str)
         
-        # Save the theme file to appdata theme path
-        shutil.copy(theme_path, os.path.join(self.appdata_theme_path, f"{theme.theme_name}.theme"))
+        filename = re.sub(r"[^a-zA-Z0-9_]", "", theme.theme_name.replace(" ", "_").strip())
+        if filename == "":
+            filename = f"noname"
+
+        # Create a new directory (package) for the theme in appdata theme path
+        theme_package_path = os.path.join(self.appdata_theme_path, f"{filename}_{uuid.uuid4()}")
+        os.makedirs(theme_package_path, exist_ok=True)
+
+        # Copy the theme file to the theme package directory
+        shutil.copy(theme_file, os.path.join(theme_package_path, f"{filename}.theme"))
+
+        # Copy all assets to the theme package directory
+        shutil.copytree(src_assets_path, os.path.join(theme_package_path, Theme.ASSETS_DIR))
+
+        # Load the theme
         self.themes[theme.theme_name] = theme
         self.logger.info(f"Imported theme file: {theme.theme_name}.theme")
+        if has_temp_dir:
+            shutil.rmtree(temp_dir)
