@@ -73,7 +73,7 @@ class MainWindowController():
         gui_log_level = self.resource_manager.config_loader.get_config(ConfigKeys.SETTINGS_DEBUG_LEVEL)
         gui_handlers: list[QtHandler] = self.log_manager.get_handlers_filter(QtHandler)
         for handler in gui_handlers:
-            handler.set_log_level(gui_log_level)
+            handler.set_gui_log_level(gui_log_level)
             handler.bind_signal(self.view.log_widget.append)
 
     def refresh_ui(self):
@@ -131,7 +131,7 @@ class MainWindowController():
         self.view.log_widget.clear()
         gui_handlers: list[QtHandler] = self.log_manager.get_handlers_filter(QtHandler)
         for handler in gui_handlers:
-            handler.set_log_level(debug_level)
+            handler.set_gui_log_level(debug_level)
             handler.emit_buffered_messages()
 
     @Slot()

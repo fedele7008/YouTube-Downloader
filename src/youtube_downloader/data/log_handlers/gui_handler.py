@@ -73,11 +73,19 @@ class QtHandler(LogHandler):
         logging.Handler.__init__(self)
         self.set_format(BRIEF_FORMAT, BRIEF_DATETIME_FORMAT)
         self.name = "qt_handler"
-        self.set_log_level(LogLevel.DEBUG)
+        self.gui_log_level = logging.NOTSET
+        self.set_log_level(LogLevel.NOTSET)
         self.buffer = []
         self.buffer_lock = threading.Lock()
         self.gui_ready = False
         self.signal_emitter = self.SignalEmitter()
+
+    def set_gui_log_level(self, log_level: LogLevel):
+        if isinstance(log_level, str):
+            log_level = LogLevel.map_to_logging_enum(LogLevel.parse_str(log_level))
+        elif isinstance(log_level, LogLevel):
+            log_level = LogLevel.map_to_logging_enum(log_level)
+        self.gui_log_level = log_level
 
     def emit(self, record: logging.LogRecord):
         """
@@ -92,7 +100,7 @@ class QtHandler(LogHandler):
         msg = self.format(record)
         with self.buffer_lock:
             self.buffer.append((record.levelno, msg))
-            if self.gui_ready:
+            if self.gui_ready and record.levelno >= self.gui_log_level:
                 self.signal_emitter.log_signal.emit(msg)
 
     def bind_signal(self, slot_function: Callable):
@@ -110,12 +118,12 @@ class QtHandler(LogHandler):
             temporary_update_signal_emitter.log_signal.connect(slot_function)
             self.gui_ready = True
             for level, msg in self.buffer:
-                if level >= self.level:
+                if level >= self.gui_log_level:
                     temporary_update_signal_emitter.log_signal.emit(msg)
 
     def emit_buffered_messages(self):
         if self.gui_ready:
             with self.buffer_lock:
                 for level, msg in self.buffer:
-                    if level >= self.level:
+                    if level >= self.gui_log_level:
                         self.signal_emitter.log_signal.emit(msg)

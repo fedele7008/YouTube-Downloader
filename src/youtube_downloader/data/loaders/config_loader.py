@@ -121,6 +121,7 @@ class ConfigLoader():
             log_level = LogLevel.parse_str(log_level_str)
 
         if self.log_manager:
+            # Store every log message from the beggining, it will be filtered by the log handler afterwards
             self.set_display_log_level(log_level)
         else:
             self.logger.debug(f"Log manager not provided, skipping display log level setting")
@@ -247,12 +248,11 @@ class ConfigLoader():
         if not self.log_manager:
             self.logger.debug(f"Log manager not available, skipping display log level setting")
             return
-        log_level_logging_enum: int = LogLevel.map_to_logging_enum(log_level)
-        display_log_handlers: list[LogHandler] = self.log_manager.get_handlers_filter(QtHandler)
+        display_log_handlers: list[QtHandler] = self.log_manager.get_handlers_filter(QtHandler)
         if display_log_handlers:
             self.logger.debug(f"{len(display_log_handlers)} GUI Log Handlers found")
         for handler in display_log_handlers:
-            handler.set_log_level(log_level_logging_enum)
+            handler.set_gui_log_level(log_level)
             self.logger.debug(f"Set GUI Log Handler {handler.name} log level to {log_level.to_str()}")
 
     def get_is_first_load(self) -> bool:
