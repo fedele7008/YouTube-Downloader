@@ -8,6 +8,7 @@ Licensed under the MIT License. See LICENSE file in the project root for more in
 """
 
 import platform
+from typing import Any
 
 from PySide6.QtCore import Slot
 from PySide6.QtGui import QAction, QShortcut, QKeySequence
@@ -65,7 +66,9 @@ class MainWindowController():
         self.view.help_menu.addAction(self.license_action)
     
     def bind_model(self):
-        self.model.theme_changed.connect(self.on_theme_changed)
+        self.model.theme_changed.connect(self.on_style_changed)
+        self.model.font_changed.connect(self.on_style_changed)
+        self.model.font_size_changed.connect(self.on_style_changed)
         self.model.locale_changed.connect(self.on_locale_changed)
         self.model.debug_mode_changed.connect(self.on_debug_mode_changed)
         self.model.debug_level_changed.connect(self.on_debug_level_changed)
@@ -84,7 +87,7 @@ class MainWindowController():
         
     @Slot()
     @block_signal(lambda self: self.view)
-    def on_theme_changed(self, theme: str) -> None:
+    def on_style_changed(self, _: Any) -> None:
         theme_str = self.resource_manager.style_loader.get_style()
         self.view.setStyleSheet(theme_str)
 

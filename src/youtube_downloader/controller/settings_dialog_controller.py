@@ -8,6 +8,7 @@ Licensed under the MIT License. See LICENSE file in the project root for more in
 """
 
 import os
+from typing import Any
 from enum import Enum
 
 from PySide6.QtCore import Qt, Slot
@@ -23,6 +24,7 @@ from youtube_downloader.model.settings_proxy import SettingsProxyModel
 from youtube_downloader.view.settings_dialog import SettingsDialog
 from youtube_downloader.data.types.locale import Locale, LocaleKeys
 from youtube_downloader.data.types.log_levels import LogLevel
+from youtube_downloader.data.loaders.font_loader import MINIMUM_FONT_SIZE, MAXIMUM_FONT_SIZE
 
 class SettingsDialogController():
     class PathErrorType(Enum):
@@ -60,6 +62,9 @@ class SettingsDialogController():
         self.view.settings_list.addItems(locale_map[LocaleKeys.SETTINGS_DIALOG_LIST])
         self.view.settings_list.setCurrentRow(0)
 
+        self.view.settings_pane_appearance.font_section.font_size_input.setMinimum(MINIMUM_FONT_SIZE)
+        self.view.settings_pane_appearance.font_section.font_size_input.setMaximum(MAXIMUM_FONT_SIZE)
+
     def bind_model(self):
         self.view.restore_button.clicked.connect(self.on_restore_button_clicked)
         self.view.cancel_button.clicked.connect(self.on_cancel_button_clicked)
@@ -70,9 +75,16 @@ class SettingsDialogController():
         self.view.settings_pane_general.download_section.default_download_path_input.textChanged.connect(self.on_general_download_default_download_path_changed)
         self.view.settings_pane_general.download_section.load_last_download_path_checkbox.stateChanged.connect(self.on_general_download_load_last_download_path_changed)
         self.view.settings_pane_general.download_section.default_download_path_browse_button.clicked.connect(self.on_general_download_default_download_path_browse_button_clicked)
+        self.view.settings_pane_appearance.style_section.theme_input.textActivated.connect(self.on_appearance_style_theme_changed)
+        self.view.settings_pane_appearance.style_section.theme_import.clicked.connect(self.on_appearance_style_theme_import_button_clicked)
+        self.view.settings_pane_appearance.font_section.font_input.textActivated.connect(self.on_appearance_font_family_changed)
+        self.view.settings_pane_appearance.font_section.font_size_input.valueChanged.connect(self.on_appearance_font_size_changed)
         self.view.settings_pane_advanced.debug_section.debug_mode_checkbox.stateChanged.connect(self.on_advanced_debug_mode_changed)
         self.view.settings_pane_advanced.debug_section.debug_log_level_input.textActivated.connect(self.on_advanced_debug_log_level_changed)
         self.model.locale_changed.connect(self.on_locale_changed)
+        self.model.theme_changed.connect(self.on_style_changed)
+        self.model.font_changed.connect(self.on_style_changed)
+        self.model.font_size_changed.connect(self.on_style_changed)
 
     def refresh_ui(self):
         self.model.invoke_current_locale_changed()
@@ -94,6 +106,18 @@ class SettingsDialogController():
         self.view.settings_pane_general.download_section.default_download_path_input.setText(self.settings_proxy.snapshot_default_download_path)
         self.view.settings_pane_general.download_section.load_last_download_path_checkbox.setChecked(self.settings_proxy.snapshot_load_last_download_path)
 
+        self.view.settings_pane_appearance.style_section.theme_input.clear()
+        self.view.settings_pane_appearance.style_section.theme_input.addItems(self.model.get_theme_list())
+        self.view.settings_pane_appearance.style_section.theme_input.setCurrentText(self.settings_proxy.snapshot_theme)
+        self.on_appearance_style_theme_changed(self.settings_proxy.snapshot_theme)
+        self.on_appearance_font_family_changed(self.settings_proxy.snapshot_font)
+        self.on_appearance_font_size_changed(self.settings_proxy.snapshot_font_size)
+        
+        self.view.settings_pane_appearance.font_section.font_input.clear()
+        self.view.settings_pane_appearance.font_section.font_input.addItems(self.model.get_font_list())
+        self.view.settings_pane_appearance.font_section.font_input.setCurrentText(self.settings_proxy.snapshot_font)
+        self.view.settings_pane_appearance.font_section.font_size_input.setValue(self.settings_proxy.snapshot_font_size)
+
         self.view.settings_pane_advanced.debug_section.debug_mode_checkbox.setChecked(self.settings_proxy.snapshot_debug_mode)
         self.view.settings_pane_advanced.debug_section.debug_log_level_input.clear()
         self.view.settings_pane_advanced.debug_section.debug_log_level_input.addItems(self.debug_level_list)
@@ -110,6 +134,18 @@ class SettingsDialogController():
 
         self.view.settings_pane_general.download_section.default_download_path_input.setText(self.settings_proxy.proxy_default_download_path)
         self.view.settings_pane_general.download_section.load_last_download_path_checkbox.setChecked(self.settings_proxy.proxy_load_last_download_path)
+
+        self.view.settings_pane_appearance.style_section.theme_input.clear()
+        self.view.settings_pane_appearance.style_section.theme_input.addItems(self.model.get_theme_list())
+        self.view.settings_pane_appearance.style_section.theme_input.setCurrentText(self.settings_proxy.proxy_theme)
+        self.on_appearance_style_theme_changed(self.settings_proxy.proxy_theme)
+        self.on_appearance_font_family_changed(self.settings_proxy.proxy_font)
+        self.on_appearance_font_size_changed(self.settings_proxy.proxy_font_size)
+        
+        self.view.settings_pane_appearance.font_section.font_input.clear()
+        self.view.settings_pane_appearance.font_section.font_input.addItems(self.model.get_font_list())
+        self.view.settings_pane_appearance.font_section.font_input.setCurrentText(self.settings_proxy.proxy_font)
+        self.view.settings_pane_appearance.font_section.font_size_input.setValue(self.settings_proxy.proxy_font_size)
 
         self.view.settings_pane_advanced.debug_section.debug_mode_checkbox.setChecked(self.settings_proxy.proxy_debug_mode)
         self.view.settings_pane_advanced.debug_section.debug_log_level_input.clear()
@@ -139,9 +175,27 @@ class SettingsDialogController():
 
         self.on_general_download_default_download_path_changed(self.settings_proxy.proxy_default_download_path)
 
+        self.view.settings_pane_appearance.style_section.title_label.setText(locale_map[LocaleKeys.SETTINGS_APPEARANCE_STYLE_TITLE])
+        self.view.settings_pane_appearance.style_section.theme_label.setText(locale_map[LocaleKeys.SETTINGS_APPEARANCE_STYLE_THEME_LABEL])
+        self.view.settings_pane_appearance.style_section.theme_import.setText(locale_map[LocaleKeys.SETTINGS_APPEARANCE_STYLE_THEME_IMPORT_BUTTON])
+        self.view.settings_pane_appearance.style_section.preview_label.setText(locale_map[LocaleKeys.SETTINGS_APPEARANCE_STYLE_PREVIEW_LABEL])
+
+        self.view.settings_pane_appearance.font_section.title_label.setText(locale_map[LocaleKeys.SETTINGS_APPEARANCE_FONT_TITLE])
+        self.view.settings_pane_appearance.font_section.font_label.setText(locale_map[LocaleKeys.SETTINGS_APPEARANCE_FONT_FAMILY_LABEL])
+        self.view.settings_pane_appearance.font_section.font_size_label.setText(locale_map[LocaleKeys.SETTINGS_APPEARANCE_FONT_SIZE_LABEL])
+
+        self.view.settings_pane_appearance.font_section.font_preview_widget.clear()
+        for preview_text in locale_map[LocaleKeys.SETTINGS_APPEARANCE_FONT_PREVIEW]:
+            self.view.settings_pane_appearance.font_section.font_preview_widget.append(preview_text)
+
         self.view.settings_pane_advanced.debug_section.title_label.setText(locale_map[LocaleKeys.SETTINGS_ADVANCED_DEBUG_TITLE])
         self.view.settings_pane_advanced.debug_section.debug_mode_checkbox.setText(locale_map[LocaleKeys.SETTINGS_ADVANCED_DEBUG_MODE_LABEL])
         self.view.settings_pane_advanced.debug_section.debug_log_level_label.setText(locale_map[LocaleKeys.SETTINGS_ADVANCED_DEBUG_LOG_LEVEL_LABEL])
+
+    @Slot()
+    @block_signal(lambda self: self.view)
+    def on_style_changed(self, _: Any) -> None:
+        self.refresh_config_ui()
 
     @Slot()
     def on_general_locale_language_changed(self, language: str) -> None:
@@ -170,6 +224,31 @@ class SettingsDialogController():
         default_download_path = QFileDialog.getExistingDirectory(self.view.settings_pane_general.download_section, browse_title, browse_dir)
         if default_download_path:
             self.view.settings_pane_general.download_section.default_download_path_input.setText(default_download_path)
+
+    @Slot()
+    def on_appearance_style_theme_changed(self, theme: str) -> None:
+        self.settings_proxy.proxy_theme = theme
+        proxy_style = self.resource_manager.style_loader.get_style(theme)
+        self.view.settings_pane_appearance.style_section.preview_widget.setStyleSheet(proxy_style)
+        self.update_buttons()
+
+    @Slot()
+    def on_appearance_style_theme_import_button_clicked(self) -> None:
+        pass
+
+    @Slot()
+    def on_appearance_font_family_changed(self, font_family: str) -> None:
+        self.settings_proxy.proxy_font = font_family
+        proxy_style = self.resource_manager.style_loader.get_style(font_family=font_family)
+        self.view.settings_pane_appearance.font_section.font_preview_widget.setStyleSheet(proxy_style)
+        self.update_buttons()
+
+    @Slot()
+    def on_appearance_font_size_changed(self, font_size: int) -> None:
+        self.settings_proxy.proxy_font_size = font_size
+        proxy_style = self.resource_manager.style_loader.get_style(font_size=font_size)
+        self.view.settings_pane_appearance.font_section.font_preview_widget.setStyleSheet(proxy_style)
+        self.update_buttons()
 
     @Slot()
     def on_advanced_debug_mode_changed(self, state: Qt.CheckState) -> None:

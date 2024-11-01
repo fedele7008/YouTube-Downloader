@@ -301,19 +301,47 @@ class StyleLoader():
             global_style_raw = global_style_raw.replace(f"${{{key}}}", value)
 
         self.global_style = global_style_raw
-        
-    def get_style(self, theme_name: str | None = None) -> str:
+
+    def get_global_style(self, theme_name: str | None = None) -> str:
         if theme_name is None or theme_name not in self.themes:
             theme_name = self.config_theme
+
+        with open(os.path.join(self.resource_style_path, "global.qss"), "r") as file:
+            global_style_raw = file.read()
+
+        if theme_name not in self.themes:
+            err_str = f"Theme specified in config does not exist: {theme_name}"
+            self.logger.error(err_str)
+            raise ValueError(err_str)
+        
+        selected_theme = self.themes[theme_name]
+        for key, value in selected_theme.theme_colors.items():
+            global_style_raw = global_style_raw.replace(f"${{{key}}}", value)
+
+        return global_style_raw
+        
+    def get_style(self, theme_name: str | None = None, font_family: str | None = None, font_size: int | None = None) -> str:
+        if theme_name is None or theme_name not in self.themes:
+            theme_name = self.config_theme
+        
+        if theme_name == self.config_theme:
+            global_style = self.global_style
+        else:
+            global_style = self.get_global_style(theme_name)
+
+        if font_family is None:
+            font_family = self.config_loader.get_config(key=ConfigKeys.SETTINGS_FONT)
+        if font_size is None:
+            font_size = self.config_loader.get_config(key=ConfigKeys.SETTINGS_FONT_SIZE)
 
         # Call this method upon change of font settings or theme
         font_style = textwrap.dedent(f"""\
         * {{
-            font-family: "{self.config_loader.get_config(key=ConfigKeys.SETTINGS_FONT)}";
-            font-size: {self.config_loader.get_config(key=ConfigKeys.SETTINGS_FONT_SIZE)}px;
+            font-family: "{font_family}";
+            font-size: {font_size}px;
         }}
         """)
-        style = f"{font_style}\n{self.global_style}\n\n/* THEME STYLES */\n\n"
+        style = f"{font_style}\n{global_style}\n\n/* THEME STYLES */\n\n"
         theme = self.themes[theme_name]
         style += theme.theme_styles
 
