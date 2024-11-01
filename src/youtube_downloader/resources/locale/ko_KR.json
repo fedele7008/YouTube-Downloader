@@ -54,6 +54,7 @@
         "settings-appearance-style-title": "스타일",
         "settings-appearance-style-theme-label": "테마",
         "settings-appearance-style-theme-import-button": "테마 불러오기",
+        "settings-appearance-style-theme-import-dialog-title": "테마 파일 또는 디렉토리 또는 테마 패키지의 압축 파일 선택",
         "settings-appearance-style-preview-label": "미리보기",
         "settings-appearance-font-title": "글꼴",
         "settings-appearance-font-family-label": "글꼴 종류",

@@ -24,6 +24,7 @@ from youtube_downloader.model.settings_proxy import SettingsProxyModel
 from youtube_downloader.view.settings_dialog import SettingsDialog
 from youtube_downloader.data.types.locale import Locale, LocaleKeys
 from youtube_downloader.data.types.log_levels import LogLevel
+from youtube_downloader.view.error_dialog import ErrorDialog
 from youtube_downloader.data.loaders.font_loader import MINIMUM_FONT_SIZE, MAXIMUM_FONT_SIZE
 
 class SettingsDialogController():
@@ -234,19 +235,33 @@ class SettingsDialogController():
 
     @Slot()
     def on_appearance_style_theme_import_button_clicked(self) -> None:
-        pass
+        dialog_title = self.resource_manager.locale_loader.get_locale(self.model.get_locale())["components"][LocaleKeys.SETTINGS_APPEARANCE_STYLE_THEME_IMPORT_DIALOG_TITLE]
+        file_filter = "Theme files (*.theme *.zip)"
+
+        theme_file = QFileDialog.getOpenFileName(self.view.settings_pane_appearance.style_section, dialog_title, get_system_download_path(), file_filter)[0]
+        if not theme_file:
+            return
+        
+        try:
+            theme_name = self.resource_manager.style_loader.import_theme(theme_file)
+            self.settings_proxy.proxy_theme = theme_name
+            self.update_buttons()
+            self.refresh_config_ui()
+        except Exception as e:
+            self.logger.error(f"Failed to import theme file {theme_file}: {str(e)}")
+            ErrorDialog.prompt(self.view, "Import Failed", str(e))
 
     @Slot()
     def on_appearance_font_family_changed(self, font_family: str) -> None:
         self.settings_proxy.proxy_font = font_family
-        proxy_style = self.resource_manager.style_loader.get_style(font_family=font_family)
+        proxy_style = self.resource_manager.style_loader.get_style(font_family=font_family, font_size=self.settings_proxy.proxy_font_size)
         self.view.settings_pane_appearance.font_section.font_preview_widget.setStyleSheet(proxy_style)
         self.update_buttons()
 
     @Slot()
     def on_appearance_font_size_changed(self, font_size: int) -> None:
         self.settings_proxy.proxy_font_size = font_size
-        proxy_style = self.resource_manager.style_loader.get_style(font_size=font_size)
+        proxy_style = self.resource_manager.style_loader.get_style(font_family=self.settings_proxy.proxy_font, font_size=font_size)
         self.view.settings_pane_appearance.font_section.font_preview_widget.setStyleSheet(proxy_style)
         self.update_buttons()
 

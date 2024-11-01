@@ -383,7 +383,7 @@ class StyleLoader():
     def get_config_theme(self) -> str:
         return self.config_theme
     
-    def import_theme(self, theme_path: str) -> None:
+    def import_theme(self, theme_path: str) -> str:
         # Check if the theme file exists
         if not os.path.exists(theme_path):
             err_str = f"Theme file does not exist: {theme_path}"
@@ -408,7 +408,10 @@ class StyleLoader():
 
         if os.path.isdir(theme_path):
             # Locate all theme files in the theme path
-            theme_files = recursive_find(theme_path, "theme")
+            theme_files = []
+            for file in recursive_find(theme_path, "theme"):
+                if not os.path.basename(file).startswith("."):
+                    theme_files.append(file)
             if len(theme_files) == 0:
                 err_str = f"No theme files found in the theme path: {theme_path}"
                 self.logger.error(err_str)
@@ -481,13 +484,20 @@ class StyleLoader():
         os.makedirs(theme_package_path, exist_ok=True)
 
         # Copy the theme file to the theme package directory
-        shutil.copy(theme_file, os.path.join(theme_package_path, f"{filename}.theme"))
+        theme_file_name = os.path.join(theme_package_path, f"{filename}.theme")
+        shutil.copy(theme_file, theme_file_name)
 
         # Copy all assets to the theme package directory
         shutil.copytree(src_assets_path, os.path.join(theme_package_path, Theme.ASSETS_DIR))
+
+        # Remap the theme paths
+        theme.theme_path = theme_file_name
+        theme.theme_assets_path = os.path.join(os.path.dirname(theme_file_name), Theme.ASSETS_DIR)
 
         # Load the theme
         self.themes[theme.theme_name] = theme
         self.logger.info(f"Imported theme file: {theme.theme_name}.theme")
         if has_temp_dir:
             shutil.rmtree(temp_dir)
+
+        return theme.theme_name

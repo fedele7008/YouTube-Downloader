@@ -76,6 +76,7 @@ class LocaleKeys:
     SETTINGS_APPEARANCE_FONT_FAMILY_LABEL = "settings-appearance-font-family-label"
     SETTINGS_APPEARANCE_FONT_SIZE_LABEL = "settings-appearance-font-size-label"
     SETTINGS_APPEARANCE_FONT_PREVIEW = "settings-appearance-font-preview"
+    SETTINGS_APPEARANCE_STYLE_THEME_IMPORT_DIALOG_TITLE = "settings-appearance-style-theme-import-dialog-title"
     SETTINGS_ADVANCED_DEBUG_TITLE = "settings-advanced-debug-title"
     SETTINGS_ADVANCED_DEBUG_MODE_LABEL = "settings-advanced-debug-mode-label"
     SETTINGS_ADVANCED_DEBUG_LOG_LEVEL_LABEL = "settings-advanced-debug-log-level-label"

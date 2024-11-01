@@ -54,6 +54,7 @@
         "settings-appearance-style-title": "Style",
         "settings-appearance-style-theme-label": "Theme",
         "settings-appearance-style-theme-import-button": "Import Theme",
+        "settings-appearance-style-theme-import-dialog-title": "Select Theme File or Directory or Zip Archive of the Theme package",
         "settings-appearance-style-preview-label": "Preview",
         "settings-appearance-font-title": "Font",
         "settings-appearance-font-family-label": "Font Family",
