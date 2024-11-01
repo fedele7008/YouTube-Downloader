@@ -1,6 +1,10 @@
-QMainWindow, QLabel, QDialog, QListWidget, QWidget {
+QMainWindow, QLabel, QDialog, QListWidget, QWidget, QToolTip {
     background-color: ${base-background-color};
     color: ${base-foreground-color};
+}
+
+QToolTip {
+    padding: 1px;
 }
 
 QLabel:disabled {
@@ -213,6 +217,62 @@ QComboBox:disabled {
     border: 1px solid ${disabled-color};
     background-color: ${base-background-color};
     color: ${disabled-color};
+}
+
+QSpinBox {
+    border: 1px solid ${border-color};
+    border-radius: 4px;
+    padding: 4px;
+    background-color: ${field-background-color};
+    color: ${base-foreground-color};
+}
+
+QSpinBox::up-button {
+    subcontrol-origin: padding;
+    subcontrol-position: top right;
+    width: 16px;
+    padding: 2px;
+    padding-top: 3px;
+    border-width: 0px;
+}
+
+QSpinBox::up-button:hover {
+    background: ${secondary-hover-color};
+    border-top-right-radius: 4px;
+}
+
+QSpinBox::up-button:pressed {
+    background: ${secondary-pressed-color};
+    border-top-right-radius: 4px;
+}
+
+QSpinBox::down-button {
+    subcontrol-origin: padding;
+    subcontrol-position: bottom right;
+    width: 16px;
+    padding: 2px;
+    padding-bottom: 3px;
+    border-width: 0px;
+}
+
+QSpinBox::down-button:hover {
+    background: ${secondary-hover-color};
+    border-bottom-right-radius: 4px;
+}
+
+QSpinBox::down-button:pressed {
+    background: ${secondary-pressed-color};
+    border-bottom-right-radius: 4px;
+}
+
+QFrame[class="theme-preview-frame"] {
+    border: 1px solid ${border-color};
+    border-radius: 4px;
+}
+
+QFrame[class="theme-preview-color"] {
+    border: 1px solid ${border-color};
+    border-radius: 4px;
 }
 
 QTextEdit[class="readonly"] {
@@ -507,4 +567,81 @@ QFrame#hline {
 
 #settings-advanced-debug-log-level-input {
     max-width: 150px;
+}
+
+#settings-appearance-style-theme-input {
+    max-width: 300px;
+}
+
+#settings-appearance-style-theme-import {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+#settings-appearance-fonts-font-input {
+    max-width: 200px;
+}
+
+#settings-appearance-fonts-font-size-input {
+    max-width: 80px;
+    min-width: 60px;
+}
+
+#settings-appearance-fonts-font-preview {
+    border: 1px solid ${border-color};
+    border-radius: 4px;
+}
+
+#settings-appearance-style-preview-widget {
+    background-color: ${base-background-color};
+}
+
+#settings-appearance-style-primary-color {
+    border: 1px solid ${border-color};
+    background-color: ${primary-color};
+}
+
+#settings-appearance-style-secondary-color {
+    border: 1px solid ${border-color};
+    background-color: ${secondary-color};
+}
+
+#settings-appearance-style-accent-color {
+    border: 1px solid ${border-color};
+    background-color: ${accent-color};
+}
+
+#settings-appearance-style-neutral-color {
+    border: 1px solid ${border-color};
+    background-color: ${neutral-color};
+}
+
+#settings-appearance-style-foreground-color {
+    border: 1px solid ${border-color};
+    background-color: ${base-foreground-color};
+}
+
+#settings-appearance-style-disabled-color {
+    border: 1px solid ${border-color};
+    background-color: ${disabled-color};
+}
+
+#settings-appearance-style-field-color {
+    background-color: ${field-background-color};
+}
+
+#settings-appearance-style-primary-color:hover {
+    background-color: ${primary-hover-color};
+}
+
+#settings-appearance-style-secondary-color:hover {
+    background-color: ${secondary-hover-color};
+}
+
+#settings-appearance-style-accent-color:hover {
+    background-color: ${accent-hover-color};
+}
+
+#settings-appearance-style-neutral-color:hover {
+    background-color: ${neutral-hover-color};
 }

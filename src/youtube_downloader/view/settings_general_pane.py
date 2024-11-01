@@ -9,6 +9,7 @@ Licensed under the MIT License. See LICENSE file in the project root for more in
 
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QScrollArea, QLabel, QHBoxLayout, 
                                QComboBox, QSizePolicy, QLineEdit, QCheckBox, QPushButton)
+from PySide6.QtGui import QCursor
 from PySide6.QtCore import Qt
 
 from youtube_downloader.view.hline_widget import HLineWidget
@@ -101,6 +102,7 @@ class SettingsGeneralPane(QWidget):
             path_input_widget.setLayout(path_input_layout)
             self.default_download_path_input = QLineEdit()
             self.default_download_path_browse_button = QPushButton()
+            self.default_download_path_browse_button.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
             path_input_layout.addWidget(self.default_download_path_input)
             path_input_layout.addWidget(self.default_download_path_browse_button)
             default_download_path_layout.addWidget(path_input_widget)

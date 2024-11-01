@@ -103,8 +103,20 @@ QComboBox[class="combo-box"]::drop-down {
 }
 
 QComboBox[class="combo-box"]::down-arrow {
-    image: url(${resource:style/assets/icon/combo-box-arrow-down-black.png});
+    image: url(${resource:style/assets/icon/arrow-down-black.png});
     width: 16px;
     height: 16px;
     margin-right: 15px;
+}
+
+QSpinBox[class="spin-box"]::down-arrow {
+    image: url(${resource:style/assets/icon/arrow-down-black.png});
+    width: 16px;
+    height: 16px;
+}
+
+QSpinBox[class="spin-box"]::up-arrow {
+    image: url(${resource:style/assets/icon/arrow-up-black.png});
+    width: 16px;
+    height: 16px;
 }
