@@ -7,24 +7,25 @@ Copyright (c) 2024 John Yoon. All rights reserved.
 Licensed under the MIT License. See LICENSE file in the project root for more information.
 """
 
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
+from typing import Any
 
-class ResultPane(QWidget):
-    def __init__(self):
-        super().__init__()
+from youtube_downloader.util.gui import center_widget_on_screen
+from PySide6.QtWidgets import (QDialog, QVBoxLayout, QLabel, QWidget)
+
+class ResultPane(QDialog):
+    def __init__(self, parent: QWidget, **kwargs: Any):
+        super().__init__(parent)
+        self.setGeometry(0, 0, 800, 600)
+        center_widget_on_screen(self, kwargs.get("screen", None))
+        
         self.init_ui()
         self.init_style()
 
     def init_ui(self):
         self.main_layout = QVBoxLayout()
         self.setLayout(self.main_layout)
-        
-        self.video_info_widget = QWidget()
-        self.video_info_layout = QVBoxLayout()
-        self.video_info_widget.setLayout(self.video_info_layout)
-        self.main_layout.addWidget(self.video_info_widget)
 
-        self.video_info_layout.addWidget(QLabel("TEST"))
+        self.main_layout.addWidget(QLabel("TEST"))
 
     def init_style(self):
         self.main_layout.setContentsMargins(0, 0, 0, 0)

@@ -81,6 +81,10 @@ class SettingsDialog(QDialog):
         self.settings_list.setObjectName("settings-dialog-settings-list")
 
         self.settings_list.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+        self.restore_button.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+        self.cancel_button.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+        self.apply_button.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+        self.save_button.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
 
         self.dialog_layout.setContentsMargins(0, 0, 0, 0)
         self.dialog_layout.setSpacing(0)

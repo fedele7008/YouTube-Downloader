@@ -7,7 +7,7 @@ Copyright (c) 2024 John Yoon. All rights reserved.
 Licensed under the MIT License. See LICENSE file in the project root for more information.
 """
 
-from PySide6.QtWidgets import QWidget, QVBoxLayout
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
 
 class StatusPane(QWidget):
     def __init__(self):
@@ -19,10 +19,7 @@ class StatusPane(QWidget):
         self.main_layout = QVBoxLayout()
         self.setLayout(self.main_layout)
 
-        self.download_status_widget = QWidget()
-        self.download_status_layout = QVBoxLayout()
-        self.download_status_widget.setLayout(self.download_status_layout)
-        self.main_layout.addWidget(self.download_status_widget)
+        self.main_layout.addWidget(QLabel("TEST 2"))
 
     def init_style(self):
         self.main_layout.setContentsMargins(0, 0, 0, 0)
