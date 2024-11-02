@@ -10,7 +10,7 @@ Licensed under the MIT License. See LICENSE file in the project root for more in
 import os
 from enum import Enum
 
-from PySide6.QtCore import Slot, Qt
+from PySide6.QtCore import Slot, Qt, QRegularExpression
 from PySide6.QtWidgets import QFileDialog
 from PySide6.QtGui import QCursor
 
@@ -37,6 +37,8 @@ class SearchPaneController():
         self.view: SearchPane = view
         self.model: YouTubeDownloaderModel = model
 
+        self.quick_paste_search = False
+
         self.config_ui()
         self.bind_model()
         self.refresh_ui()
@@ -59,6 +61,7 @@ class SearchPaneController():
         self.view.browse_button.clicked.connect(self.on_browse_button_clicked)
         self.view.search_button.clicked.connect(self.on_search_button_clicked)
         self.view.url_input.returnPressed.connect(self.on_search_button_clicked)
+        self.model.clipboard.dataChanged.connect(self.on_clipboard_changed)
 
     def refresh_ui(self):
         self.model.invoke_current_locale_changed()
@@ -69,7 +72,7 @@ class SearchPaneController():
     def on_locale_changed(self, locale: Locale) -> None:
         locale_map = self.resource_manager.locale_loader.get_locale(locale)["components"]
         self.view.url_label.setText(locale_map[LocaleKeys.SEARCH_PANE_URL_LABEL])
-        self.view.url_input.setPlaceholderText(locale_map[LocaleKeys.SEARCH_PANE_URL_INPUT_PLACEHOLDER])
+        self.update_url_input_placeholder()
         self.view.dest_label.setText(locale_map[LocaleKeys.SEARCH_PANE_DEST_LABEL])
         self.view.browse_button.setText(locale_map[LocaleKeys.SEARCH_PANE_BROWSE_BUTTON])
         self.view.search_button.setText(locale_map[LocaleKeys.SEARCH_PANE_SEARCH_BUTTON])
@@ -110,14 +113,35 @@ class SearchPaneController():
         if not self.view.search_button.isEnabled():
             return
         
-        if not self.view.url_input.text():
-            title = self.resource_manager.locale_loader.get_locale(self.model.get_locale())["components"][LocaleKeys.SEARCH_PANE_INPUT_ERROR_PROMPT_TITLE]
-            message = self.resource_manager.locale_loader.get_locale(self.model.get_locale())["components"][LocaleKeys.SEARCH_PANE_INPUT_ERROR_PROMPT_MESSAGE_EMPTY_URL]
-            self.logger.error(f"Searching for video with empty URL: {self.view.url_input.text()}")
-            ErrorDialog.prompt(self.view, title, message)
-            return
+        search_text = self.view.url_input.text().strip()
 
-        self.logger.info(f"Searching for video with URL: {self.view.url_input.text()}")
+        if not search_text:
+            if self.quick_paste_search:
+                search_text = self.model.clipboard.text().strip()
+            else:
+                title = self.resource_manager.locale_loader.get_locale(self.model.get_locale())["components"][LocaleKeys.SEARCH_PANE_INPUT_ERROR_PROMPT_TITLE]
+                message = self.resource_manager.locale_loader.get_locale(self.model.get_locale())["components"][LocaleKeys.SEARCH_PANE_INPUT_ERROR_PROMPT_MESSAGE_EMPTY_URL]
+                self.logger.error(f"Searching for video with empty URL: {search_text}")
+                ErrorDialog.prompt(self.view, title, message)
+                return
+
+        self.logger.info(f"Searching for video with URL: {search_text}")
+
+    @Slot()
+    def on_clipboard_changed(self):
+        self.update_url_input_placeholder()
+
+    def update_url_input_placeholder(self):
+        clipboard_text = self.model.clipboard.text().strip()
+        if clipboard_text:
+            pattern = QRegularExpression(r"^(https:\/\/youtu\.be\/|https:\/\/www\.youtube\.com\/).*")
+            match = pattern.match(clipboard_text)
+            if match.hasMatch():
+                self.view.url_input.setPlaceholderText(clipboard_text)
+                self.quick_paste_search = True
+                return
+        self.view.url_input.setPlaceholderText(self.resource_manager.locale_loader.get_locale(self.model.get_locale())["components"][LocaleKeys.SEARCH_PANE_URL_INPUT_PLACEHOLDER])
+        self.quick_paste_search = False
 
     def show_error_label(self, error_type: ErrorType | None) -> None:
         if error_type is None:

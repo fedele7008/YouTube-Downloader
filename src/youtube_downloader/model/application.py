@@ -10,6 +10,7 @@ Licensed under the MIT License. See LICENSE file in the project root for more in
 import os
 
 from PySide6.QtCore import QObject, Property, Signal, Slot
+from PySide6.QtWidgets import QApplication
 
 from youtube_downloader.data.log_manager import LogManager, get_null_logger
 from youtube_downloader.data.resource_manager import ResourceManager
@@ -33,6 +34,7 @@ class YouTubeDownloaderModel(QObject):
         self.log_manager: LogManager = log_manager
         self.logger = self.log_manager.get_logger() if self.log_manager else get_null_logger()
         self.resource_manager: ResourceManager = resource_manager
+        self.clipboard = QApplication.clipboard()
 
     def get_theme_list(self) -> list[str]:
         return self.resource_manager.style_loader.get_all_available_themes()

@@ -167,6 +167,20 @@ class MainWindowController():
         refresh_shortcut = QShortcut(QKeySequence("Ctrl+R"), self.view)
         refresh_shortcut.activated.connect(self.debug_refresh_ui)
 
+        search_shortcut = QShortcut(QKeySequence("Return"), self.view)
+        search_shortcut.activated.connect(self.search_pane_controller.on_search_button_clicked)
+
+        browse_shortcut = QShortcut(QKeySequence("Ctrl+B"), self.view)
+        browse_shortcut.activated.connect(self.search_pane_controller.on_browse_button_clicked)
+
+        paste_shortcut = QShortcut(QKeySequence("Ctrl+V"), self.view)
+        paste_shortcut.activated.connect(self.on_paste_shortcut)
+
+    @Slot()
+    def on_paste_shortcut(self):
+        if self.search_pane_controller.quick_paste_search:
+            self.view.search_pane.url_input.setText(self.model.clipboard.text().strip())
+
     def debug_refresh_ui(self):
         self.logger.debug("UI refreshed")
         self.resource_manager.style_loader.reload_global_style()
