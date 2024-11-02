@@ -24,6 +24,7 @@ class SearchPane(QWidget):
         self.content_layout = QGridLayout()
         self.content_widget.setLayout(self.content_layout)
         self.main_layout.addWidget(self.content_widget)
+        self.main_layout.addStretch()
 
         self.url_label = QLabel()
         self.url_input = QLineEdit()
@@ -39,6 +40,7 @@ class SearchPane(QWidget):
         self.content_layout.addWidget(self.browse_button, 1, 2)
         self.content_layout.addWidget(self.input_error_label, 2, 1, 1, 2)
         self.content_layout.addWidget(self.search_button, 0, 3, 2, 1)
+        self.content_layout.setRowStretch(3, 1)
 
     def init_style(self):
         self.url_label.setProperty("class", "input-label")
@@ -67,9 +69,6 @@ class SearchPane(QWidget):
         self.input_error_label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
         self.url_label.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         self.dest_label.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-
-        self.content_layout.setRowStretch(0, 1)
-        self.content_layout.setRowStretch(1, 1)
 
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(6)
