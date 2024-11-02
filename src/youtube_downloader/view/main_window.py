@@ -10,13 +10,14 @@ Licensed under the MIT License. See LICENSE file in the project root for more in
 from typing import Any
 
 from PySide6.QtWidgets import (QMainWindow, QWidget, QHBoxLayout, QMenuBar, QSplitter, 
-                               QFrame, QTextEdit, QVBoxLayout)
+                               QFrame, QTextEdit, QVBoxLayout, QSizePolicy)
 from PySide6.QtCore import Qt
 
 from youtube_downloader.util.gui import center_widget_on_screen
 from youtube_downloader.view.search_pane import SearchPane
 from youtube_downloader.view.result_pane import ResultPane
 from youtube_downloader.view.status_pane import StatusPane
+from youtube_downloader.view.hline_widget import HLineWidget
 
 class MainWindow(QMainWindow):
     def __init__(self, **kwargs: Any):
@@ -48,9 +49,10 @@ class MainWindow(QMainWindow):
         self.result_pane = ResultPane()
         self.status_pane = StatusPane()
 
-        self.content_layout.addWidget(self.search_pane)
-        self.content_layout.addWidget(self.result_pane)
-        self.content_layout.addWidget(self.status_pane)
+        self.content_layout.addWidget(self.search_pane, -1)
+        self.content_layout.addWidget(HLineWidget(2))
+        self.content_layout.addWidget(self.result_pane, 1)
+        self.content_layout.addWidget(self.status_pane, 1)
 
         self.log_widget = QTextEdit()
 
@@ -68,7 +70,8 @@ class MainWindow(QMainWindow):
 
         self.log_widget.setReadOnly(True)
         self.log_widget.setLineWrapMode(QTextEdit.LineWrapMode.NoWrap)
-        
-        self.content_widget.setContentsMargins(0, 0, 0, 0)
+
+        self.content_layout.setContentsMargins(0, 0, 0, 0)
+        self.content_layout.setSpacing(0)
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(5)

@@ -19,10 +19,12 @@ class StatusPane(QWidget):
         self.main_layout = QVBoxLayout()
         self.setLayout(self.main_layout)
 
-        self.download_status = QWidget()
-        self.main_layout.addWidget(self.download_status)
+        self.download_status_widget = QWidget()
+        self.download_status_layout = QVBoxLayout()
+        self.download_status_widget.setLayout(self.download_status_layout)
+        self.main_layout.addWidget(self.download_status_widget)
 
     def init_style(self):
-        pass
+        self.main_layout.setContentsMargins(0, 0, 0, 0)
 
 

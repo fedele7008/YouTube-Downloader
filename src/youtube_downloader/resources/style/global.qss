@@ -645,3 +645,7 @@ QFrame#hline {
 #settings-appearance-style-neutral-color:hover {
     background-color: ${neutral-hover-color};
 }
+
+QWidget {
+    border: 1px solid red;
+}

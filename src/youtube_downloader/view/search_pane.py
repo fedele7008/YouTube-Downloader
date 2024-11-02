@@ -7,7 +7,7 @@ Copyright (c) 2024 John Yoon. All rights reserved.
 Licensed under the MIT License. See LICENSE file in the project root for more information.
 """
 
-from PySide6.QtWidgets import QWidget, QGridLayout, QLabel, QLineEdit, QPushButton, QSizePolicy
+from PySide6.QtWidgets import QWidget, QGridLayout, QLabel, QLineEdit, QPushButton, QSizePolicy, QVBoxLayout
 from PySide6.QtCore import Qt
 
 class SearchPane(QWidget):
@@ -17,8 +17,13 @@ class SearchPane(QWidget):
         self.init_style()
 
     def init_ui(self):
-        self.main_layout = QGridLayout()
+        self.main_layout = QVBoxLayout()
         self.setLayout(self.main_layout)
+
+        self.content_widget = QWidget()
+        self.content_layout = QGridLayout()
+        self.content_widget.setLayout(self.content_layout)
+        self.main_layout.addWidget(self.content_widget)
 
         self.url_label = QLabel()
         self.url_input = QLineEdit()
@@ -27,13 +32,13 @@ class SearchPane(QWidget):
         self.browse_button = QPushButton()
         self.input_error_label = QLabel()
         self.search_button = QPushButton()
-        self.main_layout.addWidget(self.url_label, 0, 0)
-        self.main_layout.addWidget(self.url_input, 0, 1, 1, 2)
-        self.main_layout.addWidget(self.dest_label, 1, 0)
-        self.main_layout.addWidget(self.dest_input, 1, 1)
-        self.main_layout.addWidget(self.browse_button, 1, 2)
-        self.main_layout.addWidget(self.input_error_label, 2, 1, 1, 2)
-        self.main_layout.addWidget(self.search_button, 0, 3, 2, 1)
+        self.content_layout.addWidget(self.url_label, 0, 0)
+        self.content_layout.addWidget(self.url_input, 0, 1, 1, 2)
+        self.content_layout.addWidget(self.dest_label, 1, 0)
+        self.content_layout.addWidget(self.dest_input, 1, 1)
+        self.content_layout.addWidget(self.browse_button, 1, 2)
+        self.content_layout.addWidget(self.input_error_label, 2, 1, 1, 2)
+        self.content_layout.addWidget(self.search_button, 0, 3, 2, 1)
 
     def init_style(self):
         self.url_label.setProperty("class", "input-label")
@@ -64,4 +69,3 @@ class SearchPane(QWidget):
 
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(6)
-        self.main_layout.setRowStretch(3, 1)
