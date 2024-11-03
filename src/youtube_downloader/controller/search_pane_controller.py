@@ -134,7 +134,7 @@ class SearchPaneController():
     def update_url_input_placeholder(self):
         clipboard_text = self.model.clipboard.text().strip()
         if clipboard_text:
-            pattern = QRegularExpression(r"^(https:\/\/youtu\.be\/|https:\/\/www\.youtube\.com\/).*")
+            pattern = QRegularExpression(r"^(https:\/\/youtu\.be\/|https:\/\/www\.youtube\.com\/.+).*")
             match = pattern.match(clipboard_text)
             if match.hasMatch():
                 self.view.url_input.setPlaceholderText(clipboard_text)

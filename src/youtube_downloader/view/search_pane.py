@@ -11,8 +11,8 @@ from PySide6.QtWidgets import QWidget, QGridLayout, QLabel, QLineEdit, QPushButt
 from PySide6.QtCore import Qt
 
 class SearchPane(QWidget):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent: QWidget | None = None):
+        super().__init__(parent)
         self.init_ui()
         self.init_style()
 

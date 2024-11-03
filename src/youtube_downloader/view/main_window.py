@@ -47,11 +47,11 @@ class MainWindow(QMainWindow):
         self.content_widget.setLayout(self.content_layout)
         self.splitter.addWidget(self.content_widget)
 
-        self.search_pane = SearchPane()
+        self.search_pane = SearchPane(self)
         self.content_layout.addWidget(self.search_pane, 0)
         self.content_layout.addWidget(HLineWidget(2), 0)
 
-        self.status_pane = StatusPane()
+        self.status_pane = StatusPane(self)
         self.content_layout.addWidget(self.status_pane, 1)
 
         self.log_widget = QTextEdit()
