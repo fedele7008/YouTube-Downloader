@@ -9,71 +9,16 @@ Licensed under the MIT License. See LICENSE file in the project root for more in
 
 import os
 from typing import Any
-import requests
 
-from PySide6.QtWidgets import QWidget, QStackedLayout, QLabel, QSizePolicy
+from PySide6.QtWidgets import QWidget, QStackedLayout, QLabel, QProgressBar, QVBoxLayout
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWebEngineCore import QWebEngineSettings
-from PySide6.QtCore import Qt, QEvent, QSize
-from PySide6.QtGui import QImage, QPixmap, QPainter, QEnterEvent, QMouseEvent, QCursor
+from PySide6.QtCore import Qt, QEvent, QTimer, QPropertyAnimation, QEasingCurve
+from PySide6.QtGui import QImage, QPixmap, QEnterEvent, QMouseEvent
 
 from youtube_downloader.util.path import get_media_path
-
-class ResizableImageLabel(QLabel):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.pixmap_original = None
-        self.overlay_pixmap = None
-        self.mouse_over = False
-        self.setAlignment(Qt.AlignCenter)
-        self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
-        self.setMinimumSize(0, 0)
-        self.setCursor(QCursor(Qt.PointingHandCursor))
-
-    def setPixmap(self, pixmap):
-        """Store the original pixmap and trigger repaint."""
-        self.pixmap_original = pixmap
-        self.update()
-
-    def setOverlayPixmap(self, pixmap):
-        """Set the overlay pixmap (e.g., play button)."""
-        self.overlay_pixmap = pixmap
-
-    def enterEvent(self, event):
-        """Handle mouse entering the widget."""
-        self.mouse_over = True
-        self.update()
-        super().enterEvent(event)
-
-    def leaveEvent(self, event):
-        """Handle mouse leaving the widget."""
-        self.mouse_over = False
-        self.update()
-        super().leaveEvent(event)
-
-    def paintEvent(self, event):
-        """Custom paint event to handle aspect-ratio scaling and overlay."""
-        if self.pixmap_original:
-            painter = QPainter(self)
-            painter.fillRect(self.rect(), Qt.black)
-            scaled_pixmap = self.pixmap_original.scaled(
-                self.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation
-            )
-            
-            x = (self.width() - scaled_pixmap.width()) // 2
-            y = (self.height() - scaled_pixmap.height()) // 2
-            painter.drawPixmap(x, y, scaled_pixmap)
-            if self.mouse_over and self.overlay_pixmap:
-                smaller_side = min(scaled_pixmap.width(), scaled_pixmap.height())
-                overlay_size = QSize(smaller_side // 4, smaller_side // 4)
-                overlay_scaled_pixmap = self.overlay_pixmap.scaled(
-                    overlay_size, Qt.KeepAspectRatio, Qt.SmoothTransformation
-                )
-                overlay_x = x + (scaled_pixmap.width() - overlay_scaled_pixmap.width()) // 2
-                overlay_y = y + (scaled_pixmap.height() - overlay_scaled_pixmap.height()) // 2
-                painter.drawPixmap(overlay_x, overlay_y, overlay_scaled_pixmap)
-        else:
-            super().paintEvent(event)
+from youtube_downloader.view.resizable_image import ResizeableImage
+from youtube_downloader.util.request import get_request
 
 class VideoWidget(QWidget):
     HTML_TEMPLATE = """
@@ -118,51 +63,102 @@ class VideoWidget(QWidget):
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.main_layout)
 
-        self.web_view = QWebEngineView()
-        self.web_view.show()
+        self.web_view = QWidget()
+        self.web_view_layout = QVBoxLayout()
+        self.web_view_layout.setContentsMargins(0, 0, 0, 0)
+        self.web_view_layout.setSpacing(0)
+        self.web_view.setLayout(self.web_view_layout)
+
+        self.web_view_content = QWebEngineView()
+        self.web_view_content.show()
+        self.web_view_layout.addWidget(self.web_view_content)
 
         self.main_layout.addWidget(self.web_view)
 
-        self.settings = self.web_view.settings()
+        self.settings = self.web_view_content.settings()
         self.settings.setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True)
         self.settings.setAttribute(QWebEngineSettings.WebAttribute.JavascriptEnabled, True)
         self.settings.setAttribute(QWebEngineSettings.WebAttribute.PlaybackRequiresUserGesture, False)
         self.settings.setAttribute(QWebEngineSettings.WebAttribute.JavascriptCanOpenWindows, True)
-        
+
+        self.timeout = 10000
+        self.timer_bar = QProgressBar(self)
+        self.timer_bar.setFixedHeight(5)
+        self.timer_bar.setStyleSheet("""
+            QProgressBar {
+                border: none;
+                background-color: transparent;
+            }
+            QProgressBar::chunk {
+                background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                                                  stop:0 #2D32B3, stop:1 #B32DFF);
+            }
+        """)
+        self.timer_bar.setMaximum(1000)
+        self.timer_bar.setValue(self.timer_bar.maximum())
+        self.timer_bar.setTextVisible(False)
+        self.timer_bar.hide()
+        self.timer_bar_animation = None
+        self.web_view_layout.addWidget(self.timer_bar)
+
         self.set_thumbnail(thumbnail_url)
         self.main_layout.addWidget(self.thumbnail_label)
         self.main_layout.setCurrentWidget(self.thumbnail_label)
 
+    def on_timer_start(self) -> None:
+        self.timer_bar_animation = QPropertyAnimation(self.timer_bar, b"value")
+        self.timer_bar_animation.setDuration(self.timeout)
+        self.timer_bar_animation.setStartValue(self.timer_bar.maximum())
+        self.timer_bar_animation.setEndValue(0)
+        self.timer_bar_animation.setEasingCurve(QEasingCurve.Type.Linear)
+        self.timer_bar_animation.finished.connect(self.on_timer_timeout)
+        self.timer_bar_animation.start()
+        self.timer_bar.setValue(self.timer_bar.maximum())
+        self.timer_bar.show()
+
+    def on_timer_stop(self) -> None:
+        if self.timer_bar_animation:
+            self.timer_bar_animation.stop()
+            self.timer_bar_animation = None
+        self.timer_bar.hide()
+
+    def on_timer_timeout(self) -> None:
+        self.main_layout.setCurrentWidget(self.thumbnail_label)
+        self.web_view_content.setHtml("")
+        self.on_timer_stop()
+
     def enterEvent(self, event: QEnterEvent) -> None:
+        if self.main_layout.currentWidget() == self.web_view:
+            self.on_timer_stop()
         return super().enterEvent(event)
 
     def leaveEvent(self, event: QEvent) -> None:
+        if self.main_layout.currentWidget() == self.web_view:
+            self.on_timer_start()
         return super().leaveEvent(event)
     
     def mousePressEvent(self, event: QMouseEvent) -> None:
         self.main_layout.setCurrentWidget(self.web_view)
-        self.web_view.setHtml(self.html_str)
+        self.web_view_content.setHtml(self.html_str)
         return super().mousePressEvent(event)
 
     def create_thumbnail(self, image_data: bytes, overlay: str | None = None) -> QLabel:
-        image = QImage()
-        image.loadFromData(image_data)
-        pixmap = QPixmap.fromImage(image)
-        label = ResizableImageLabel()
-        label.setPixmap(pixmap)
+        thumbnail_image = QImage()
+        thumbnail_image.loadFromData(image_data)
+        thumbnail_pixmap = QPixmap.fromImage(thumbnail_image)
+        thumbnail_widget = ResizeableImage(pixmap=thumbnail_pixmap, fill_color=Qt.GlobalColor.black, hover_scale=1/4)
         if overlay is not None:
             overlay_image_path = os.path.join(get_media_path(), overlay)
             overlay_pixmap = QPixmap(overlay_image_path)
-            label.setOverlayPixmap(overlay_pixmap)
-        return label
+            thumbnail_widget.setHoverPixmap(overlay_pixmap)
+        return thumbnail_widget
 
     def set_thumbnail(self, thumbnail_url: str | None) -> None:
-        if thumbnail_url:
-            res = requests.get(thumbnail_url)
-            if res.status_code == 200:
-                self.thumbnail_label = self.create_thumbnail(res.content, overlay="play_button.png")
-                return
+        image = get_request(thumbnail_url)
+        if not image:
+            default_image_path = os.path.join(get_media_path(), "default_thumbnail.jpg")
+            with open(default_image_path, "rb") as f:
+                self.thumbnail_label = self.create_thumbnail(f.read())
+            return
         
-        default_image_path = os.path.join(get_media_path(), "sample.png")
-        with open(default_image_path, "rb") as f:
-            self.thumbnail_label = self.create_thumbnail(f.read())
+        self.thumbnail_label = self.create_thumbnail(image.content, overlay="play_button.png")
