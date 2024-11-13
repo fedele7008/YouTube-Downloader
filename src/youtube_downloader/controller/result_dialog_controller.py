@@ -23,10 +23,18 @@ class ResultDialogController():
         self.model: YouTubeDownloaderModel = model
         self.video_data: dict = video_data
 
+        if self.video_data is None:
+            raise ValueError("Result data is not provided")
+        self.video_id = self.video_data.get("id", None)
+        if self.video_id is None:
+            raise ValueError("Result data does not contain 'id'")
+        self.thumbnail_url = self.video_data.get("thumbnail", None)
+
         self.config_ui()
 
     def config_ui(self):
-        pass
+        self.view.video_widget.set_thumbnail(self.thumbnail_url)
+        self.view.video_widget.set_video(self.video_id)
 
     def exec(self):
         self.view.exec()

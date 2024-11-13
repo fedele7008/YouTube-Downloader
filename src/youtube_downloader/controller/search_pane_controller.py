@@ -145,7 +145,7 @@ class SearchPaneController():
     def on_search_worker_success(self, video_data: dict) -> None:
         self.logger.debug(f"Search worker success: {video_data.get('title', 'No title')}")
         try:
-            self.result_dialog = ResultDialog(parent=self.view, result_data=video_data, screen=self.view.screen())
+            self.result_dialog = ResultDialog(parent=self.view, screen=self.view.screen())
             self.result_dialog_controller = ResultDialogController(self.log_manager, self.resource_manager, self.result_dialog, self.model, video_data)
             self.result_dialog_controller.exec()
         except Exception as e:
