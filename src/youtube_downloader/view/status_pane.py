@@ -20,10 +20,5 @@ class StatusPane(QWidget):
         self.main_layout = QVBoxLayout()
         self.setLayout(self.main_layout)
 
-        self.video_widget = VideoWidget("https://www.youtube.com/watch?v=Q_i068DzFYo", thumbnail_url="https://i.ytimg.com/vi/Q_i068DzFYo/hqdefault.jpg?sqp=-oaymwEcCNACELwBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLCXGH3dsHqszXBQ47k5tPrY8tdVsg", parent=self)
-        self.main_layout.addWidget(self.video_widget, 1)
-
     def init_style(self):
         self.main_layout.setContentsMargins(0, 0, 0, 0)
-
-

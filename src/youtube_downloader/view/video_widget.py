@@ -13,7 +13,7 @@ from typing import Any
 from PySide6.QtWidgets import QWidget, QStackedLayout, QLabel, QProgressBar, QVBoxLayout
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWebEngineCore import QWebEngineSettings
-from PySide6.QtCore import Qt, QEvent, QTimer, QPropertyAnimation, QEasingCurve
+from PySide6.QtCore import Qt, QEvent, QPropertyAnimation, QEasingCurve
 from PySide6.QtGui import QImage, QPixmap, QEnterEvent, QMouseEvent
 
 from youtube_downloader.util.path import get_media_path
