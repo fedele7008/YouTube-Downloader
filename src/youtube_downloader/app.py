@@ -10,6 +10,7 @@ Licensed under the MIT License. See LICENSE file in the project root for more in
 import sys, logging, os
 
 from PySide6.QtWidgets import QApplication
+from PySide6.QtCore import Qt
 
 import youtube_downloader
 from youtube_downloader.data.resource_manager import ResourceManager
@@ -29,6 +30,9 @@ class YouTubeDownloader:
     def __init__(self):
         # Create QApplication instance safely
         self.app = QApplication.instance() if QApplication.instance() else QApplication(sys.argv)
+        self.app.setAttribute(Qt.ApplicationAttribute.AA_EnableHighDpiScaling)
+        self.app.setAttribute(Qt.ApplicationAttribute.AA_UseHighDpiPixmaps)
+        
         self.app.setApplicationName("YouTube Downloader")
         self.app.setApplicationVersion(f"{youtube_downloader.__version__}")
         self.app.setStyle('Fusion')

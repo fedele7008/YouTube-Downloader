@@ -10,7 +10,7 @@ Licensed under the MIT License. See LICENSE file in the project root for more in
 import os
 from enum import Enum
 
-from PySide6.QtCore import Slot, Qt, QRegularExpression
+from PySide6.QtCore import Slot, Qt, QRegularExpression, QThreadPool
 from PySide6.QtWidgets import QFileDialog
 from PySide6.QtGui import QCursor
 
@@ -22,6 +22,9 @@ from youtube_downloader.data.types.locale import Locale, LocaleKeys
 from youtube_downloader.util.decorator import block_signal
 from youtube_downloader.util.path import get_system_download_path
 from youtube_downloader.view.error_dialog import ErrorDialog
+from youtube_downloader.view.result_dialog import ResultDialog
+from youtube_downloader.controller.result_dialog_controller import ResultDialogController
+from youtube_downloader.worker.search_worker import SearchWorker
 
 class SearchPaneController():
     class ErrorType(Enum):
@@ -38,6 +41,7 @@ class SearchPaneController():
         self.model: YouTubeDownloaderModel = model
 
         self.quick_paste_search = False
+        self.search_in_progress = False
 
         self.config_ui()
         self.bind_model()
@@ -113,6 +117,9 @@ class SearchPaneController():
         if not self.view.search_button.isEnabled():
             return
         
+        if self.search_in_progress:
+            return
+        
         search_text = self.view.url_input.text().strip()
 
         if not search_text:
@@ -126,6 +133,34 @@ class SearchPaneController():
                 return
 
         self.logger.info(f"Searching for video with URL: {search_text}")
+        self.search_in_progress = True
+        self.view.search_button.setEnabled(False)
+
+        self.search_worker = SearchWorker(self.log_manager, self.model, search_text)
+        self.search_worker.signals.success.connect(self.on_search_worker_success)
+        self.search_worker.signals.error.connect(self.on_search_worker_error)
+        QThreadPool.globalInstance().start(self.search_worker)
+
+    @Slot(dict)
+    def on_search_worker_success(self, video_data: dict) -> None:
+        self.logger.debug(f"Search worker success: {video_data.get('title', 'No title')}")
+        try:
+            self.result_dialog = ResultDialog(parent=self.view, result_data=video_data, screen=self.view.screen())
+            self.result_dialog_controller = ResultDialogController(self.log_manager, self.resource_manager, self.result_dialog, self.model, video_data)
+            self.result_dialog_controller.exec()
+        except Exception as e:
+            self.logger.error(f"Error displaying result dialog: {e}")
+        self.search_in_progress = False
+        self.view.search_button.setEnabled(True)
+
+    @Slot(Exception)
+    def on_search_worker_error(self, e: Exception) -> None:
+        self.logger.error(f"Search worker error: {e}")
+        title = self.resource_manager.locale_loader.get_locale(self.model.get_locale())["components"][LocaleKeys.SEARCH_PANE_INPUT_ERROR_PROMPT_TITLE]
+        message = self.resource_manager.locale_loader.get_locale(self.model.get_locale())["components"][LocaleKeys.SEARCH_PANE_INPUT_ERROR_PROMPT_MESSAGE_INVALID_VIDEO]
+        ErrorDialog.prompt(self.view, title, message)
+        self.search_in_progress = False
+        self.view.search_button.setEnabled(True)
 
     @Slot()
     def on_clipboard_changed(self):
@@ -134,7 +169,7 @@ class SearchPaneController():
     def update_url_input_placeholder(self):
         clipboard_text = self.model.clipboard.text().strip()
         if clipboard_text:
-            pattern = QRegularExpression(r"^(https:\/\/youtu\.be\/|https:\/\/www\.youtube\.com\/.+).*")
+            pattern = QRegularExpression(r"^(https:\/\/youtu\.be\/|https:\/\/www\.youtube\.com\/watch\?v=.+).*")
             match = pattern.match(clipboard_text)
             if match.hasMatch():
                 self.view.url_input.setPlaceholderText(clipboard_text)

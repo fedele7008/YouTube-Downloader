@@ -14,7 +14,7 @@ from PySide6.QtWidgets import QWidget, QStackedLayout, QLabel, QProgressBar, QVB
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWebEngineCore import QWebEngineSettings
 from PySide6.QtCore import Qt, QEvent, QPropertyAnimation, QEasingCurve
-from PySide6.QtGui import QImage, QPixmap, QEnterEvent, QMouseEvent
+from PySide6.QtGui import QHideEvent, QImage, QPixmap, QEnterEvent, QMouseEvent, QCloseEvent
 
 from youtube_downloader.util.path import get_media_path
 from youtube_downloader.view.resizable_image import ResizeableImage
@@ -70,6 +70,9 @@ class VideoWidget(QWidget):
         self.web_view.setLayout(self.web_view_layout)
 
         self.web_view_content = QWebEngineView()
+        self.first_load = True
+        self.web_view_content.setHtml(self.html_str)
+        self.web_view_content.stop()
         self.web_view_content.show()
         self.web_view_layout.addWidget(self.web_view_content)
 
@@ -139,7 +142,11 @@ class VideoWidget(QWidget):
     
     def mousePressEvent(self, event: QMouseEvent) -> None:
         self.main_layout.setCurrentWidget(self.web_view)
-        self.web_view_content.setHtml(self.html_str)
+        if self.first_load:
+            self.web_view_content.reload()
+            self.first_load = False
+        else:
+            self.web_view_content.setHtml(self.html_str)
         return super().mousePressEvent(event)
 
     def create_thumbnail(self, image_data: bytes, overlay: str | None = None) -> QLabel:
@@ -162,3 +169,17 @@ class VideoWidget(QWidget):
             return
         
         self.thumbnail_label = self.create_thumbnail(image.content, overlay="play_button.png")
+
+    def widget_cleanup(self) -> None:
+        self.on_timer_stop()
+        self.on_timer_timeout()
+
+    def closeEvent(self, event: QCloseEvent) -> None:
+        self.widget_cleanup()
+        self.web_view_content.stop()
+        self.web_view_content.deleteLater()
+        return super().closeEvent(event)
+
+    def hideEvent(self, event: QHideEvent) -> None:
+        self.widget_cleanup()
+        return super().hideEvent(event)

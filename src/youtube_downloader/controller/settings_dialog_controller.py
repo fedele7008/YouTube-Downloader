@@ -335,6 +335,5 @@ class SettingsDialogController():
                 self.view.settings_pane_general.download_section.default_download_path_error_label.setText(msg.format(path=self.settings_proxy.snapshot_default_download_path))
         self.view.settings_pane_general.download_section.default_download_path_error_label.show()
 
-
     def exec(self):
         self.view.exec()

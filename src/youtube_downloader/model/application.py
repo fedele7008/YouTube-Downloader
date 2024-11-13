@@ -36,6 +36,9 @@ class YouTubeDownloaderModel(QObject):
         self.resource_manager: ResourceManager = resource_manager
         self.clipboard = QApplication.clipboard()
 
+    def get_ffmpeg_location(self) -> str:
+        return self.resource_manager.binary_loader.get_ffmpeg_location()
+
     def get_theme_list(self) -> list[str]:
         return self.resource_manager.style_loader.get_all_available_themes()
     

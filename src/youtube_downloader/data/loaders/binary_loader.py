@@ -116,3 +116,6 @@ class BinaryLoader():
 
         self.ffmpeg_exe = os.path.abspath(os.path.join(path.get_external_path(), "ffmpeg", "bin", ffmpeg_exe_name))
         self.logger.debug(f"FFmpeg executable path: {self.ffmpeg_exe}")
+
+    def get_ffmpeg_location(self) -> str:
+        return self.ffmpeg_exe
