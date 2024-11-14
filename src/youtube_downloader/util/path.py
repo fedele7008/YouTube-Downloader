@@ -205,3 +205,12 @@ def get_theme_path() -> str:
         str: The absolute path to the theme directory.
     """
     return os.path.join(get_appdata_path(), "themes")
+
+def get_cache_path() -> str:
+    """
+    Get the path to the cache directory.
+
+    Returns:
+        str: The absolute path to the cache directory.
+    """
+    return os.path.join(get_appdata_path(), "cache")

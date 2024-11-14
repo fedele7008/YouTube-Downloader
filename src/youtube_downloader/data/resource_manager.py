@@ -15,6 +15,7 @@ from youtube_downloader.data.loaders.font_loader import FontLoader
 from youtube_downloader.data.loaders.style_loader import StyleLoader
 from youtube_downloader.data.loaders.locale_loader import LocaleLoader
 from youtube_downloader.data.loaders.media_loader import MediaLoader
+from youtube_downloader.data.loaders.cache_loader import CacheLoader
 from youtube_downloader.data.log_manager import LogManager, get_null_logger
 from youtube_downloader.data.types.locale import Locale
 
@@ -26,25 +27,28 @@ class ResourceManager():
         self.progress_hook = hook
         
         # Initialize binary loader
-        self.binary_loader = self.progress_hook(100 / 6, "Loading ffmpeg binary", 700, BinaryLoader, self.log_manager) if hook else BinaryLoader(self.log_manager)
+        self.binary_loader = self.progress_hook(100 / 7, "Loading ffmpeg binary", 700, BinaryLoader, self.log_manager) if hook else BinaryLoader(self.log_manager)
 
         # Initialize config loader
-        self.config_loader = self.progress_hook(100 / 6 * 2, f"Loading config", 300, ConfigLoader, self.log_manager) if hook else ConfigLoader(self.log_manager)
+        self.config_loader = self.progress_hook(100 / 7 * 2, f"Loading config", 300, ConfigLoader, self.log_manager) if hook else ConfigLoader(self.log_manager)
 
         # Initialize font loader
-        self.font_loader = self.progress_hook(100 / 6 * 3, f"Loading fonts", 300, FontLoader, self.config_loader, self.log_manager) if hook else FontLoader(self.config_loader, self.log_manager)
+        self.font_loader = self.progress_hook(100 / 7 * 3, f"Loading fonts", 300, FontLoader, self.config_loader, self.log_manager) if hook else FontLoader(self.config_loader, self.log_manager)
 
         # Initialize style loader
-        self.style_loader = self.progress_hook(100 / 6 * 4, f"Loading styles", 300, StyleLoader, self.config_loader, self.log_manager) if hook else StyleLoader(self.config_loader, self.log_manager)
+        self.style_loader = self.progress_hook(100 / 7 * 4, f"Loading styles", 300, StyleLoader, self.config_loader, self.log_manager) if hook else StyleLoader(self.config_loader, self.log_manager)
 
         # Initialize locale loader
-        self.locale_loader = self.progress_hook(100 / 6 * 5, f"Loading locales", 300, LocaleLoader, self.config_loader, self.log_manager) if hook else LocaleLoader(self.config_loader, self.log_manager)
+        self.locale_loader = self.progress_hook(100 / 7 * 5, f"Loading locales", 300, LocaleLoader, self.config_loader, self.log_manager) if hook else LocaleLoader(self.config_loader, self.log_manager)
         
         # Initialize media loader
-        self.media_loader = self.progress_hook(100 / 6 * 6, f"Loading media", 700, MediaLoader, self.log_manager) if hook else MediaLoader(self.log_manager)
+        self.media_loader = self.progress_hook(100 / 7 * 6, f"Loading media", 300, MediaLoader, self.log_manager) if hook else MediaLoader(self.log_manager)
+
+        # Initialize cache loader
+        self.cache_loader = self.progress_hook(100 / 7 * 7, f"Loading cache", 500, CacheLoader, self.config_loader, self.log_manager) if hook else CacheLoader(self.config_loader, self.log_manager)
 
         if hook:
-            self.progress_hook(100, "Completed", 800)
+            self.progress_hook(100, "Completed", 700)
 
         self.logger.info("Resource manager service started")
 

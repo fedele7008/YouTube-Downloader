@@ -120,23 +120,28 @@ class SearchPaneController():
         if self.search_in_progress:
             return
         
-        search_text = self.view.url_input.text().strip()
+        self.search_text = self.view.url_input.text().strip()
 
-        if not search_text:
+        if not self.search_text:
             if self.quick_paste_search:
-                search_text = self.model.clipboard.text().strip()
+                self.search_text = self.model.clipboard.text().strip()
             else:
                 title = self.resource_manager.locale_loader.get_locale(self.model.get_locale())["components"][LocaleKeys.SEARCH_PANE_INPUT_ERROR_PROMPT_TITLE]
                 message = self.resource_manager.locale_loader.get_locale(self.model.get_locale())["components"][LocaleKeys.SEARCH_PANE_INPUT_ERROR_PROMPT_MESSAGE_EMPTY_URL]
-                self.logger.error(f"Searching for video with empty URL: {search_text}")
+                self.logger.error(f"Searching for video with empty URL: {self.search_text}")
                 ErrorDialog.prompt(self.view, title, message)
                 return
 
-        self.logger.info(f"Searching for video with URL: {search_text}")
+        self.logger.info(f"Searching for video with URL: {self.search_text}")
         self.search_in_progress = True
         self.view.search_button.setEnabled(False)
 
-        self.search_worker = SearchWorker(self.log_manager, self.model, search_text)
+        cache = self.resource_manager.cache_loader.get(self.search_text)
+        if cache:
+            self.on_search_worker_success(cache)
+            return
+
+        self.search_worker = SearchWorker(self.log_manager, self.model, self.search_text)
         self.search_worker.signals.success.connect(self.on_search_worker_success)
         self.search_worker.signals.error.connect(self.on_search_worker_error)
         QThreadPool.globalInstance().start(self.search_worker)
@@ -144,6 +149,7 @@ class SearchPaneController():
     @Slot(dict)
     def on_search_worker_success(self, video_data: dict) -> None:
         self.logger.debug(f"Search worker success: {video_data.get('title', 'No title')}")
+        self.resource_manager.cache_loader.add(self.search_text, video_data)
         try:
             self.result_dialog = ResultDialog(parent=self.view, screen=self.view.screen())
             self.result_dialog_controller = ResultDialogController(self.log_manager, self.resource_manager, self.result_dialog, self.model, video_data)
