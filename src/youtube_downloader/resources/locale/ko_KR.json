@@ -24,6 +24,7 @@
         "browse-button": "폴더 변경",
         "browse-dialog-title": "다운로드 경로 선택",
         "search-button": "검색",
+        "search-cancel-button": "검색 취소",
         "input-error-message-empty-dest": "다운로드 경로가 비어 있습니다.",
         "input-error-message-dest-dir-not-exist": "다운로드 경로가 폴더가 아니거나 존재하지 않습니다.",
         "input-error-message-dest-dir-not-writable": "다운로드 경로에 접근할 수 없습니다.",

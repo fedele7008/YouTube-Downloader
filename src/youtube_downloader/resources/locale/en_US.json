@@ -24,6 +24,7 @@
         "browse-button": "Browse",
         "browse-dialog-title": "Download Directory Selection",
         "search-button": "Search",
+        "search-cancel-button": "Cancel",
         "input-error-message-empty-dest": "Download directory is not set.",
         "input-error-message-dest-dir-not-exist": "Download directory is not a directory or does not exist.",
         "input-error-message-dest-dir-not-writable": "Download directory is not writable.",

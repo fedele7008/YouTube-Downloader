@@ -11,7 +11,6 @@ from youtube_downloader.data.log_manager import LogManager, get_null_logger
 from youtube_downloader.data.resource_manager import ResourceManager
 from youtube_downloader.model.application import YouTubeDownloaderModel
 from youtube_downloader.view.result_dialog import ResultDialog
-from youtube_downloader.view.video_widget import VideoWidget
 
 class ResultDialogController():
     def __init__(self, log_manager: LogManager | None, resource_manager: ResourceManager, view: ResultDialog, model: YouTubeDownloaderModel, video_data: dict):

@@ -11,6 +11,7 @@ import logging, threading
 from typing import Callable
 
 from PySide6.QtCore import QObject, Signal
+import shiboken6
 
 from youtube_downloader.data.abstracts.log_handler import LogHandler
 from youtube_downloader.data.types.log_levels import LogLevel
@@ -97,6 +98,10 @@ class QtHandler(LogHandler):
         Args:
             record (logging.LogRecord): The log record to emit.
         """
+        # Check if signal emitter exists and is valid (occurs when closing application)
+        if self.signal_emitter is None or not shiboken6.isValid(self.signal_emitter):
+            return
+
         msg = self.format(record)
         with self.buffer_lock:
             self.buffer.append((record.levelno, msg))

@@ -486,6 +486,12 @@ QFrame#hline {
     margin-right: 0px;
 }
 
+#search-pane-cancel-button {
+    padding-left: 20px;
+    padding-right: 20px;
+    margin-right: 0px;
+}
+
 #search-pane-browse-button {
     padding-left: 8px;
     padding-right: 8px;

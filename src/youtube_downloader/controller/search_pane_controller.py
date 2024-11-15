@@ -57,6 +57,7 @@ class SearchPaneController():
 
         self.view.browse_button.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         self.view.search_button.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+        self.view.cancel_button.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
 
     def bind_model(self):
         self.model.locale_changed.connect(self.on_locale_changed)
@@ -64,6 +65,7 @@ class SearchPaneController():
         self.view.dest_input.textChanged.connect(self.on_dest_input_changed)
         self.view.browse_button.clicked.connect(self.on_browse_button_clicked)
         self.view.search_button.clicked.connect(self.on_search_button_clicked)
+        self.view.cancel_button.clicked.connect(self.on_cancel_button_clicked)
         self.view.url_input.returnPressed.connect(self.on_search_button_clicked)
         self.model.clipboard.dataChanged.connect(self.on_clipboard_changed)
 
@@ -80,6 +82,7 @@ class SearchPaneController():
         self.view.dest_label.setText(locale_map[LocaleKeys.SEARCH_PANE_DEST_LABEL])
         self.view.browse_button.setText(locale_map[LocaleKeys.SEARCH_PANE_BROWSE_BUTTON])
         self.view.search_button.setText(locale_map[LocaleKeys.SEARCH_PANE_SEARCH_BUTTON])
+        self.view.cancel_button.setText(locale_map[LocaleKeys.SEARCH_PANE_CANCEL_BUTTON])
         self.dialog_title = locale_map[LocaleKeys.SEARCH_PANE_BROWSE_DIALOG_TITLE]
         self.on_dest_input_changed()
 
@@ -138,25 +141,39 @@ class SearchPaneController():
 
         cache = self.resource_manager.cache_loader.get(self.search_text)
         if cache:
+            self.logger.debug(f"Found cached video: {cache.get('title', 'No title')}")
             self.on_search_worker_success(cache)
             return
 
+        self.logger.debug(f"Cache not found for: {self.search_text}")
+        self.view.show_cancel_button()
         self.search_worker = SearchWorker(self.log_manager, self.model, self.search_text)
         self.search_worker.signals.success.connect(self.on_search_worker_success)
         self.search_worker.signals.error.connect(self.on_search_worker_error)
         QThreadPool.globalInstance().start(self.search_worker)
 
+    @Slot()
+    def on_cancel_button_clicked(self) -> None:
+        if not self.search_in_progress:
+            return
+        
+        self.search_worker.cancel()
+        self.search_in_progress = False
+        self.view.show_search_button()
+        self.view.search_button.setEnabled(True)
+
     @Slot(dict)
     def on_search_worker_success(self, video_data: dict) -> None:
         self.logger.debug(f"Search worker success: {video_data.get('title', 'No title')}")
         self.resource_manager.cache_loader.add(self.search_text, video_data)
+        self.search_in_progress = False
+        self.view.show_search_button()
         try:
             self.result_dialog = ResultDialog(parent=self.view, screen=self.view.screen())
             self.result_dialog_controller = ResultDialogController(self.log_manager, self.resource_manager, self.result_dialog, self.model, video_data)
             self.result_dialog_controller.exec()
         except Exception as e:
             self.logger.error(f"Error displaying result dialog: {e}")
-        self.search_in_progress = False
         self.view.search_button.setEnabled(True)
 
     @Slot(Exception)

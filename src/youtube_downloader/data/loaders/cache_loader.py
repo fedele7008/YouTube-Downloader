@@ -86,7 +86,7 @@ class SearchCacheIndexTable():
     def push_to_disk(self) -> None:
         with open(self.save_file_path, "w") as f:
             json.dump({SearchCacheIndexTable.Keys.CACHE: list(self.index_table)}, f, indent=4)
-        self.logger.debug(f"Saved search cache index table to {self.save_file_path}")
+        self.logger.debug(f"Saved search cache index table to {os.path.basename(self.save_file_path)}")
 
     def get_index(self, query: str) -> tuple[int, str] | None:
         for item in self.index_table:
@@ -131,8 +131,6 @@ class SearchCacheDatabase():
 
     class Keys:
         ENTRY = "cache"
-        ENTRY_INDEX = "index"
-        ENTRY_DATA = "data"
 
     def __init__(self, config_loader: ConfigLoader, log_manager: LogManager | None = None):
         self.config_loader = config_loader
@@ -190,7 +188,7 @@ class SearchCacheDatabase():
     def push_to_disk(self) -> None:
         with open(self.save_file_path, "w") as f:
             json.dump({SearchCacheDatabase.Keys.ENTRY: self.cache_db}, f, indent=4)
-        self.logger.debug(f"Saved search cache database to {self.save_file_path}")
+        self.logger.debug(f"Saved search cache database to {os.path.basename(self.save_file_path)}")
 
 class CacheLoader():
     def __init__(self, config_loader: ConfigLoader, log_manager: LogManager | None = None):

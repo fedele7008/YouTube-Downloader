@@ -41,6 +41,7 @@ class LocaleKeys:
     SEARCH_PANE_BROWSE_BUTTON = "browse-button"
     SEARCH_PANE_BROWSE_DIALOG_TITLE = "browse-dialog-title"
     SEARCH_PANE_SEARCH_BUTTON = "search-button"
+    SEARCH_PANE_CANCEL_BUTTON = "search-cancel-button"
     SEARCH_PANE_INPUT_ERROR_MESSAGE_EMPTY_DEST = "input-error-message-empty-dest"
     SEARCH_PANE_INPUT_ERROR_MESSAGE_DEST_DIR_NOT_EXIST = "input-error-message-dest-dir-not-exist"
     SEARCH_PANE_INPUT_ERROR_MESSAGE_DEST_DIR_NOT_WRITABLE = "input-error-message-dest-dir-not-writable"

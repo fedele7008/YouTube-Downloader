@@ -7,7 +7,7 @@ Copyright (c) 2024 John Yoon. All rights reserved.
 Licensed under the MIT License. See LICENSE file in the project root for more information.
 """
 
-from PySide6.QtWidgets import QWidget, QGridLayout, QLabel, QLineEdit, QPushButton, QSizePolicy, QVBoxLayout
+from PySide6.QtWidgets import QWidget, QGridLayout, QLabel, QLineEdit, QPushButton, QSizePolicy, QVBoxLayout, QStackedWidget
 from PySide6.QtCore import Qt
 
 class SearchPane(QWidget):
@@ -32,14 +32,19 @@ class SearchPane(QWidget):
         self.dest_input = QLineEdit()
         self.browse_button = QPushButton()
         self.input_error_label = QLabel()
+        self.main_button_group = QStackedWidget()
         self.search_button = QPushButton()
+        self.main_button_group.addWidget(self.search_button)
+        self.cancel_button = QPushButton()
+        self.main_button_group.addWidget(self.cancel_button)
+        self.show_search_button()
         self.content_layout.addWidget(self.url_label, 0, 0)
         self.content_layout.addWidget(self.url_input, 0, 1, 1, 2)
         self.content_layout.addWidget(self.dest_label, 1, 0)
         self.content_layout.addWidget(self.dest_input, 1, 1)
         self.content_layout.addWidget(self.browse_button, 1, 2)
         self.content_layout.addWidget(self.input_error_label, 2, 1, 1, 2)
-        self.content_layout.addWidget(self.search_button, 0, 3, 2, 1)
+        self.content_layout.addWidget(self.main_button_group, 0, 3, 2, 1)
         self.content_layout.setRowStretch(3, 1)
 
     def init_style(self):
@@ -47,6 +52,7 @@ class SearchPane(QWidget):
         self.dest_label.setProperty("class", "input-label")
         self.browse_button.setProperty("class", "neutral")
         self.search_button.setProperty("class", "primary")
+        self.cancel_button.setProperty("class", "accent")
         self.url_input.setProperty("class", "input-field")
         self.dest_input.setProperty("class", "input-field")
 
@@ -57,9 +63,12 @@ class SearchPane(QWidget):
         self.browse_button.setObjectName("search-pane-browse-button")
         self.input_error_label.setObjectName("search-pane-input-error-label")
         self.search_button.setObjectName("search-pane-search-button")
+        self.cancel_button.setObjectName("search-pane-cancel-button")
 
         self.input_error_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.search_button.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Expanding)
+        self.cancel_button.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Expanding)
+        self.main_button_group.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Expanding)
         self.url_label.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
         self.dest_label.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
         self.url_input.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
@@ -71,4 +80,11 @@ class SearchPane(QWidget):
         self.dest_label.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
 
         self.main_layout.setContentsMargins(0, 0, 0, 0)
+        self.main_button_group.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(6)
+
+    def show_search_button(self):
+        self.main_button_group.setCurrentWidget(self.search_button)
+
+    def show_cancel_button(self):
+        self.main_button_group.setCurrentWidget(self.cancel_button)
