@@ -1,0 +1,503 @@
+"""
+Author: John Yoon
+Email: fedelejohn7008@gmail.com
+Version: 2.1.0
+
+Copyright (c) 2024 John Yoon. All rights reserved.
+Licensed under the MIT License. See LICENSE file in the project root for more information.
+"""
+
+import os, re, shutil, zipfile, textwrap, uuid
+from typing import Self
+
+import youtube_downloader
+from youtube_downloader.data.loaders.config_loader import ConfigLoader, ConfigKeys
+from youtube_downloader.data.log_manager import LogManager, get_null_logger
+from youtube_downloader.util.path import (get_style_path, get_resource_theme_path, get_theme_path,
+                                          get_resource_path, flat_find, recursive_find)
+from youtube_downloader.data.loaders.common import DEFAULT_THEME_NAME
+
+class Theme():
+    THEME_INFO_HEADER = "[THEME INFO]"
+    THEME_VARIABLES_HEADER = "[THEME VARIABLES]"
+    THEME_COLORS_HEADER = "[THEME COLORS]"
+    THEME_ADDITIONAL_STYLES_HEADER = "[ADDITIONAL STYLES]"
+
+    SEPARATOR = ":"
+    ASSETS_DIR = "assets"
+
+    class ThemeInfoKeys():
+        NAME = "name"
+        AUTHOR = "author"
+        VERSION = "version"
+
+    class ThemeColorsKeys():
+        PRIMARY_COLOR = "primary-color"
+        PRIMARY_HOVER_COLOR = "primary-hover-color"
+        PRIMARY_PRESSED_COLOR = "primary-pressed-color"
+        PRIMARY_TEXT_COLOR = "primary-text-color"
+        SECONDARY_COLOR = "secondary-color"
+        SECONDARY_HOVER_COLOR = "secondary-hover-color"
+        SECONDARY_PRESSED_COLOR = "secondary-pressed-color"
+        SECONDARY_TEXT_COLOR = "secondary-text-color"
+        ACCENT_COLOR = "accent-color"
+        ACCENT_HOVER_COLOR = "accent-hover-color"
+        ACCENT_PRESSED_COLOR = "accent-pressed-color"
+        ACCENT_TEXT_COLOR = "accent-text-color"
+        NEUTRAL_COLOR = "neutral-color"
+        NEUTRAL_HOVER_COLOR = "neutral-hover-color"
+        NEUTRAL_PRESSED_COLOR = "neutral-pressed-color"
+        NEUTRAL_TEXT_COLOR = "neutral-text-color"
+        SCROLL_BAR_COLOR = "scroll-bar-color"
+        DISABLED_COLOR = "disabled-color"
+        BASE_BACKGROUND_COLOR = "base-background-color"
+        BACKGROUND_HOVER_COLOR = "background-hover-color"
+        BASE_FOREGROUND_COLOR = "base-foreground-color"
+        FIELD_BACKGROUND_COLOR = "field-background-color"
+        BORDER_COLOR = "border-color"
+        PLACEHOLDER_TEXT_COLOR = "placeholder-text-color"
+
+    def __init__(self, theme_path: str, theme_name: str, theme_info: dict, theme_colors: dict | None = None, theme_styles: str | None = None, log_manager: LogManager | None = None):
+        self.logger = log_manager.get_logger() if log_manager else get_null_logger()
+        self.theme_path = theme_path
+        self.theme_assets_path = os.path.join(os.path.dirname(theme_path), Theme.ASSETS_DIR)
+        self.theme_name = theme_name
+        self.theme_info = theme_info
+        self.theme_colors = theme_colors
+        self.theme_styles = theme_styles
+
+    @classmethod
+    def parse_theme_file(cls, theme_file: str, log_manager: LogManager | None = None) -> Self:
+        logger = log_manager.get_logger() if log_manager else get_null_logger()
+
+        # Verify if theme file exists
+        if not os.path.exists(theme_file):
+            err_str = f"Theme file does not exist: {theme_file}"
+            logger.error(err_str)
+            raise FileNotFoundError(err_str)
+        
+        # Verify if theme file is valid
+        if not theme_file.endswith(".theme"):
+            err_str = f"Theme file is invalid: {theme_file}"
+            logger.error(err_str)
+            raise ValueError(err_str)
+        
+        with open(theme_file, "r") as file:
+            data = file.read()
+
+        # Remove any string that starts with "//" to end of the line
+        data = re.sub(r"//.*", "", data)
+        # Strip any trailing white spaces but not leading white spaces for each line
+        data = "\n".join([line.rstrip() for line in data.split("\n")])
+        # Remove any empty lines
+        data = "\n".join([line for line in data.split("\n") if line.strip()])
+
+        theme_info_header_index = data.find(cls.THEME_INFO_HEADER)
+        if theme_info_header_index == -1:
+            err_str = f"Theme file is missing {cls.THEME_INFO_HEADER}: {theme_file}"
+            logger.error(err_str)
+            raise ValueError(err_str)
+        
+        theme_variables_header_index = data.find(cls.THEME_VARIABLES_HEADER)
+        if theme_variables_header_index == -1:
+            err_str = f"Theme file is missing {cls.THEME_VARIABLES_HEADER}: {theme_file}"
+            logger.error(err_str)
+            raise ValueError(err_str)
+        
+        theme_colors_header_index = data.find(cls.THEME_COLORS_HEADER)
+        if theme_colors_header_index == -1:
+            err_str = f"Theme file is missing {cls.THEME_COLORS_HEADER}: {theme_file}"
+            logger.error(err_str)
+            raise ValueError(err_str)
+        
+        theme_additional_styles_header_index = data.find(cls.THEME_ADDITIONAL_STYLES_HEADER)
+        if theme_additional_styles_header_index == -1:
+            err_str = f"Theme file is missing {cls.THEME_ADDITIONAL_STYLES_HEADER}: {theme_file}"
+            logger.error(err_str)
+            raise ValueError(err_str)
+        
+        # Extract theme file components
+        theme_info_str = data[theme_info_header_index+len(cls.THEME_INFO_HEADER):theme_variables_header_index].strip()
+        theme_variables_str = data[theme_variables_header_index+len(cls.THEME_VARIABLES_HEADER):theme_colors_header_index].strip()
+        theme_colors_str = data[theme_colors_header_index+len(cls.THEME_COLORS_HEADER):theme_additional_styles_header_index].strip()
+        theme_additional_styles = data[theme_additional_styles_header_index+len(cls.THEME_ADDITIONAL_STYLES_HEADER):].strip()
+
+        # Extract theme info
+        theme_info = {}
+        for line in theme_info_str.split("\n"):
+            split_index = line.find(cls.SEPARATOR)
+            if split_index == -1:
+                logger.warn(f"Theme file {theme_file} detected invalid theme info format: {line}. Ignoring it.")
+                continue
+            key = line[:split_index].strip()
+            value = line[split_index+1:].strip()
+            theme_info[key] = value
+
+        # Assert that theme info contains all required keys
+        ThemeInfoKeysList = [value for attr, value in vars(cls.ThemeInfoKeys).items() if not attr.startswith('__')]
+        for key in ThemeInfoKeysList:
+            if key not in theme_info:
+                err_str = f"Theme file {theme_file} is missing required theme info: {key}."
+                logger.error(err_str)
+                raise ValueError(err_str)
+
+        # Extract theme colors
+        theme_colors = {}
+        for line in theme_colors_str.split("\n"):
+            if not line.strip():
+                continue
+            split_index = line.find(cls.SEPARATOR)
+            if split_index == -1:
+                err_str = f"Theme file {theme_file} detected invalid theme colors format: {line}."
+                logger.error(err_str)
+                raise ValueError(err_str)
+            key = line[:split_index].strip()
+            value = line[split_index+1:].strip()
+            theme_colors[key] = value
+
+        # Assert that theme colors contains all required keys
+        ThemeColorKeysList = [value for attr, value in vars(cls.ThemeColorsKeys).items() if not attr.startswith('__')]
+        for key in ThemeColorKeysList:
+            if key not in theme_colors:
+                err_str = f"Theme file {theme_file} is missing required theme colors: {key}."
+                logger.error(err_str)
+                raise ValueError(err_str)
+            
+        # Assert that theme_colors contains extraneous keys
+        for key in theme_colors.keys():
+            if key not in ThemeColorKeysList:
+                err_str = f"Theme file {theme_file} contains extraneous theme colors: {key}."
+                logger.error(err_str)
+                raise ValueError(err_str)
+
+        # Extract theme variables
+        theme_variables = {}
+        for line in theme_variables_str.split("\n"):
+            if not line.strip():
+                continue
+            split_index = line.find(cls.SEPARATOR)
+            if split_index == -1:
+                logger.warn(f"Theme file {theme_file} detected invalid theme variables format: {line}. Ignoring it.")
+                continue
+            key = line[:split_index].strip()
+            value = line[split_index+1:].strip()
+            theme_variables[key] = value
+
+        # Assert that theme variables does not contain any key of theme_colors
+        for key in theme_variables.keys():
+            if key in theme_colors:
+                err_str = f"Theme file {theme_file} contains theme variables that conflict with theme colors: {key}."
+                logger.error(err_str)
+                raise ValueError(err_str)
+            
+        # Apply theme variable to its own values (in order)
+        for key, value in theme_variables.items():
+            for target_key, target_value in theme_variables.items():
+                if key == target_key:
+                    continue # Skip applying self to self
+                theme_variables[target_key] = target_value.replace(f"${{{key}}}", value)
+            
+        # Apply theme variables to theme_colors's values
+        for key, value in theme_variables.items():
+            for color_key, color_value in theme_colors.items():
+                theme_colors[color_key] = color_value.replace(f"${{{key}}}", value)
+
+        # Apply theme variables to theme_additional_styles
+        for key, value in theme_variables.items():
+            theme_additional_styles = theme_additional_styles.replace(f"${{{key}}}", value)
+
+        # Apply theme colors to theme_additional_styles
+        for key, value in theme_colors.items():
+            theme_additional_styles = theme_additional_styles.replace(f"${{{key}}}", value)
+
+        return cls(theme_file, theme_info[cls.ThemeInfoKeys.NAME], theme_info, theme_colors, theme_additional_styles, log_manager)
+
+
+class StyleLoader():
+    def __init__(self, config_loader: ConfigLoader, log_manager: LogManager | None = None):
+        self.log_manager = log_manager
+        self.logger = self.log_manager.get_logger() if self.log_manager else get_null_logger()
+        self.config_loader = config_loader
+        self.config_theme = self.config_loader.get_config(key=ConfigKeys.SETTINGS_THEME)
+        self.resource_style_path = get_style_path()
+        self.resource_theme_path = get_resource_theme_path()
+        self.appdata_theme_path = get_theme_path()
+        self.themes: dict[str, Theme] = {}
+        self.global_style = ""
+
+        # If appdata theme path does not exist, create it
+        if not os.path.exists(self.appdata_theme_path):
+            os.makedirs(self.appdata_theme_path)
+
+        # Load existing theme files in appdata theme path
+        for theme_file in recursive_find(self.appdata_theme_path, "theme"):
+            try:
+                theme = Theme.parse_theme_file(theme_file, self.log_manager)
+                if theme.theme_info[Theme.ThemeInfoKeys.VERSION] != youtube_downloader.__version__:
+                    self.logger.warn(f"Theme file {theme.theme_name} version mismatches: {theme.theme_info[Theme.ThemeInfoKeys.VERSION]} (current app version: {youtube_downloader.__version__}). Skipping the load.")
+                    continue
+                if theme.theme_name in self.themes:
+                    self.logger.warn(f"Theme file {theme_file} is already loaded: {theme.theme_name}")
+                    continue
+                self.themes[theme.theme_name] = theme
+                self.logger.debug(f"Loaded theme: {theme.theme_name}")
+            except Exception:
+                self.logger.error(f"Failed to load theme package: {os.path.dirname(theme_file)}. Skipping the load.")
+
+        for theme_file in recursive_find(self.resource_theme_path, "theme"):
+            try:
+                theme = Theme.parse_theme_file(theme_file, self.log_manager)
+                if theme.theme_info[Theme.ThemeInfoKeys.VERSION] != youtube_downloader.__version__:
+                    self.logger.warn(f"Theme file {theme.theme_name} version mismatches: {theme.theme_info[Theme.ThemeInfoKeys.VERSION]} (current app version: {youtube_downloader.__version__}). Skipping the load.")
+                    continue
+                if theme.theme_name in self.themes:
+                    continue
+                self.import_theme(theme_file)
+                self.logger.debug(f"Copied system theme package: {theme.theme_name} to {self.appdata_theme_path}")
+            except Exception:
+                self.logger.error(f"Failed to load system theme package: {os.path.dirname(theme_file)}. Skipping the load.")
+
+        # Check if the theme specified in config exists
+        if self.config_theme not in self.themes:
+            self.logger.warn(f"Theme specified in config does not exist: {self.config_theme}. Using default theme, {DEFAULT_THEME_NAME}")
+            self.config_theme = DEFAULT_THEME_NAME
+            self.config_loader.save_config_key(key=ConfigKeys.SETTINGS_THEME, value=self.config_theme)
+
+        # Re-confirm that the theme specified in config exists
+        if self.config_theme not in self.themes:
+            err_str = f"Theme specified in config does not exist: {self.config_theme}"
+            self.logger.error(err_str)
+            raise ValueError(err_str)
+        
+        self.reload_global_style()
+        self.logger.info(f"Themes available: {self.get_all_available_themes()}")
+        self.logger.debug(f"Style Loader initialized with config theme: {self.config_theme}")
+
+    def change_config_theme(self, theme_name: str) -> None:
+        # Verify that the theme exists
+        if theme_name not in self.themes:
+            err_str = f"Theme does not exist: {theme_name}"
+            self.logger.error(err_str)
+            raise ValueError(err_str)
+        
+        # Change config theme
+        self.config_theme = theme_name
+        self.config_loader.save_config_key(key=ConfigKeys.SETTINGS_THEME, value=theme_name)
+        self.logger.info(f"Changed config theme to: {theme_name}")
+        self.reload_global_style()
+
+    def reload_global_style(self):
+        # Read global style from the resource style path
+        with open(os.path.join(self.resource_style_path, "global.qss"), "r") as file:
+            global_style_raw = file.read()
+        
+        if self.config_theme not in self.themes:
+            err_str = f"Theme specified in config does not exist: {self.config_theme}"
+            self.logger.error(err_str)
+            raise ValueError(err_str)
+        
+        current_theme = self.themes[self.config_theme]
+        for key, value in current_theme.theme_colors.items():
+            global_style_raw = global_style_raw.replace(f"${{{key}}}", value)
+
+        self.global_style = global_style_raw
+
+    def get_global_style(self, theme_name: str | None = None) -> str:
+        if theme_name is None or theme_name not in self.themes:
+            theme_name = self.config_theme
+
+        with open(os.path.join(self.resource_style_path, "global.qss"), "r") as file:
+            global_style_raw = file.read()
+
+        if theme_name not in self.themes:
+            err_str = f"Theme specified in config does not exist: {theme_name}"
+            self.logger.error(err_str)
+            raise ValueError(err_str)
+        
+        selected_theme = self.themes[theme_name]
+        for key, value in selected_theme.theme_colors.items():
+            global_style_raw = global_style_raw.replace(f"${{{key}}}", value)
+
+        return global_style_raw
+        
+    def get_style(self, theme_name: str | None = None, font_family: str | None = None, font_size: int | None = None) -> str:
+        if theme_name is None or theme_name not in self.themes:
+            theme_name = self.config_theme
+        
+        if theme_name == self.config_theme:
+            global_style = self.global_style
+        else:
+            global_style = self.get_global_style(theme_name)
+
+        if font_family is None:
+            font_family = self.config_loader.get_config(key=ConfigKeys.SETTINGS_FONT)
+        if font_size is None:
+            font_size = self.config_loader.get_config(key=ConfigKeys.SETTINGS_FONT_SIZE)
+
+        # Call this method upon change of font settings or theme
+        font_style = textwrap.dedent(f"""\
+        * {{
+            font-family: "{font_family}";
+            font-size: {font_size}px;
+        }}
+        """)
+        style = f"{font_style}\n{global_style}\n\n/* THEME STYLES */\n\n"
+        theme = self.themes[theme_name]
+        style += theme.theme_styles
+
+        # Replace any ${font-size} with config font size
+        font_size = self.config_loader.get_config(key=ConfigKeys.SETTINGS_FONT_SIZE)
+        style = re.sub(r"\${font-size}", str(font_size), style)
+        # Replace any ${font-size:+n} with config font size + n where n is an integer
+        # Replace any ${font-size:-n} with config font size - n where n is an integer
+        def replace_font_size(match):
+            operator = match.group(1)
+            number = int(match.group(2))
+            base_size = int(font_size)
+            if operator == '+':
+                return str(base_size + number)
+            else:
+                return str(base_size - number)
+        style = re.sub(r"\${font-size:(\+|-)(\d+)}", replace_font_size, style)
+
+        # Replace any ${resource:path/to/resource} with the actual resource path
+        def replace_resource(match):
+            resource_path = match.group(1)
+            file_path = os.path.join(*[get_resource_path()] + resource_path.split('/'))
+            file_url = f"\"{file_path.replace('\\', '/')}\""
+            return file_url
+        style = re.sub(r"\${resource:([^}]+)}", replace_resource, style)
+
+        # Replace any ${asset:path/to/asset} with the actual asset path
+        def replace_asset(match):
+            asset_path = match.group(1)
+            file_path = os.path.join(*[theme.theme_assets_path] + asset_path.split('/'))
+            file_url = f"\"{file_path.replace('\\', '/')}\""
+            return file_url
+        style = re.sub(r"\${asset:([^}]+)}", replace_asset, style)
+        return style
+
+    def get_all_available_themes(self) -> list[str]:
+        return list(self.themes.keys())
+    
+    def get_config_theme(self) -> str:
+        return self.config_theme
+    
+    def import_theme(self, theme_path: str) -> str:
+        # Check if the theme file exists
+        if not os.path.exists(theme_path):
+            err_str = f"Theme file does not exist: {theme_path}"
+            self.logger.error(err_str)
+            raise FileNotFoundError(err_str)
+
+        has_temp_dir = False
+        
+        # Check if the theme file is a zip file
+        if zipfile.is_zipfile(theme_path):
+            # Create a temporary directory
+            temp_dir = os.path.join(self.appdata_theme_path, f"tmp_import_theme_{uuid.uuid4()}")
+            os.makedirs(temp_dir, exist_ok=True)
+            has_temp_dir = True
+
+            # Extract the zip file to the temporary directory
+            with zipfile.ZipFile(theme_path, "r") as zip_ref:
+                zip_ref.extractall(temp_dir)
+            
+            # Use the extracted directory as the theme path
+            theme_path = temp_dir
+
+        if os.path.isdir(theme_path):
+            # Locate all theme files in the theme path
+            theme_files = []
+            for file in recursive_find(theme_path, "theme"):
+                if not os.path.basename(file).startswith("."):
+                    theme_files.append(file)
+            if len(theme_files) == 0:
+                err_str = f"No theme files found in the theme path: {theme_path}"
+                self.logger.error(err_str)
+                if has_temp_dir:
+                    shutil.rmtree(temp_dir)
+                raise ValueError(err_str)
+            elif len(theme_files) > 1:
+                err_str = f"Multiple theme files found in the theme path: {theme_path}"
+                self.logger.error(err_str)
+                if has_temp_dir:
+                    shutil.rmtree(temp_dir)
+                raise ValueError(err_str)
+            
+            theme_file = theme_files[0]
+        else:
+            # Verify if theme_path is a theme file
+            if not theme_path.endswith(".theme"):
+                err_str = f"Theme file is invalid: {theme_path}"
+                self.logger.error(err_str)
+                if has_temp_dir:
+                    shutil.rmtree(temp_dir)
+                raise ValueError(err_str)
+            theme_file = theme_path
+
+        # Check if the theme file is readable
+        if not os.access(theme_file, os.R_OK):
+            err_str = f"Theme file is not readable: {theme_file}"
+            self.logger.error(err_str)
+            if has_temp_dir:
+                shutil.rmtree(temp_dir)
+            raise ValueError(err_str)
+        
+        # Check if assets directory exists
+        src_package_path = os.path.dirname(theme_file)
+        src_assets_path = os.path.join(src_package_path, Theme.ASSETS_DIR)
+        if not os.path.exists(src_assets_path) or not os.path.isdir(src_assets_path):
+            err_str = f"Theme file {theme_file} is missing assets directory: {src_assets_path}"
+            self.logger.error(err_str)
+            if has_temp_dir:
+                shutil.rmtree(temp_dir)
+            raise ValueError(err_str)
+        
+        try:
+            theme = Theme.parse_theme_file(theme_file, self.log_manager)
+        except Exception:
+            err_str = f"Failed to parse theme file: {theme_file}. Aborting the load."
+            self.logger.error(err_str)
+            if has_temp_dir:
+                shutil.rmtree(temp_dir)
+            raise ValueError(err_str)
+        if theme.theme_info[Theme.ThemeInfoKeys.VERSION] != youtube_downloader.__version__:
+            err_str = f"Theme file {theme.theme_name} version mismatches: {theme.theme_info[Theme.ThemeInfoKeys.VERSION]} (current app version: {youtube_downloader.__version__}). Aborting the load."
+            self.logger.error(err_str)
+            if has_temp_dir:
+                shutil.rmtree(temp_dir)
+            raise ValueError(err_str)
+        if theme.theme_name in self.themes:
+            err_str = f"Theme file {theme_path} is already loaded: {theme.theme_name}"
+            self.logger.error(err_str)
+            if has_temp_dir:
+                shutil.rmtree(temp_dir)
+            raise ValueError(err_str)
+        
+        filename = re.sub(r"[^a-zA-Z0-9_]", "", theme.theme_name.replace(" ", "_").strip())
+        if filename == "":
+            filename = f"noname"
+
+        # Create a new directory (package) for the theme in appdata theme path
+        theme_package_path = os.path.join(self.appdata_theme_path, f"{filename}_{uuid.uuid4()}")
+        os.makedirs(theme_package_path, exist_ok=True)
+
+        # Copy the theme file to the theme package directory
+        theme_file_name = os.path.join(theme_package_path, f"{filename}.theme")
+        shutil.copy(theme_file, theme_file_name)
+
+        # Copy all assets to the theme package directory
+        shutil.copytree(src_assets_path, os.path.join(theme_package_path, Theme.ASSETS_DIR))
+
+        # Remap the theme paths
+        theme.theme_path = theme_file_name
+        theme.theme_assets_path = os.path.join(os.path.dirname(theme_file_name), Theme.ASSETS_DIR)
+
+        # Load the theme
+        self.themes[theme.theme_name] = theme
+        self.logger.info(f"Imported theme file: {theme.theme_name}.theme")
+        if has_temp_dir:
+            shutil.rmtree(temp_dir)
+
+        return theme.theme_name
