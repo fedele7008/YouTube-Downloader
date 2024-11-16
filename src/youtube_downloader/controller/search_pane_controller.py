@@ -141,7 +141,7 @@ class SearchPaneController():
 
         cache = self.resource_manager.cache_loader.get(self.search_text)
         if cache:
-            self.logger.debug(f"Found cached video: {cache.get('title', 'No title')}")
+            self.logger.debug(f"Found cached video")
             self.on_search_worker_success(cache)
             return
 
@@ -164,7 +164,7 @@ class SearchPaneController():
 
     @Slot(dict)
     def on_search_worker_success(self, video_data: dict) -> None:
-        self.logger.debug(f"Search worker success: {video_data.get('title', 'No title')}")
+        self.logger.debug(f"Search worker success: {video_data.get('original_url', '')}")
         if not video_data.get("is_live", True):
             self.resource_manager.cache_loader.add(self.search_text, video_data)
         self.search_in_progress = False
