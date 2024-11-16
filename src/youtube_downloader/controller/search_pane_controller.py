@@ -179,10 +179,11 @@ class SearchPaneController():
     @Slot(Exception)
     def on_search_worker_error(self, e: Exception) -> None:
         self.logger.error(f"Search worker error: {e}")
+        self.search_in_progress = False
+        self.view.show_search_button()
         title = self.resource_manager.locale_loader.get_locale(self.model.get_locale())["components"][LocaleKeys.SEARCH_PANE_INPUT_ERROR_PROMPT_TITLE]
         message = self.resource_manager.locale_loader.get_locale(self.model.get_locale())["components"][LocaleKeys.SEARCH_PANE_INPUT_ERROR_PROMPT_MESSAGE_INVALID_VIDEO]
         ErrorDialog.prompt(self.view, title, message)
-        self.search_in_progress = False
         self.view.search_button.setEnabled(True)
 
     @Slot()

@@ -65,7 +65,7 @@ def search_process(url: str, ydl_opts: dict, conn) -> None:
     except Exception as e:
         resp = IPC_RESPONSE.copy()
         resp[IPCKeys.STATE] = IPC_STATE_ERROR
-        resp[IPCKeys.RESULT] = e
+        resp[IPCKeys.RESULT] = str(e)
         conn.send(resp)
     finally:
         conn.close()
