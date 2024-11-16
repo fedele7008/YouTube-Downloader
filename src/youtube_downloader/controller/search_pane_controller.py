@@ -165,7 +165,8 @@ class SearchPaneController():
     @Slot(dict)
     def on_search_worker_success(self, video_data: dict) -> None:
         self.logger.debug(f"Search worker success: {video_data.get('title', 'No title')}")
-        self.resource_manager.cache_loader.add(self.search_text, video_data)
+        if not video_data.get("is_live", True):
+            self.resource_manager.cache_loader.add(self.search_text, video_data)
         self.search_in_progress = False
         self.view.show_search_button()
         try:
